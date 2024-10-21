@@ -46,7 +46,7 @@ class Perceptron:
         """
         length, dimension = x_train.shape
         self.weights = np.random.rand(dimension + 1)
-        #self.weights = np.array([0,1.1,-1])
+        # self.weights = np.array([0,1.1,-1])
         w_history = []
         for epoch in range(epochs):
             for index in range(length):
@@ -68,8 +68,9 @@ class PointCollection:
         self.collections_locations = []
         self.collections_rotations = []
         self.collections_labels = []
+        self.collections_scales = []
 
-    def _create_ellipse_points(self, number: int, a: float = 1, b: float = 1) -> np.array:
+    def _create_ellipse_points(self, number: int, a: float = 1, b: float = 1, max_angle: float = 2*pi) -> np.array:
         """
         randomises points in the shape of an ellipse. uses skewed_uniform to ensure that most points are near the circumference to make it looks nicer
 
@@ -84,7 +85,7 @@ class PointCollection:
         """
         points = np.array([]).reshape(0, 2)
         for _ in range(number):
-            angle = uniform(0, 2 * pi)
+            angle = uniform(0, max_angle)
             new_point = np.array(
                 [[self._skewed_uniform(a*cos(angle)), self._skewed_uniform(b*sin(angle))]])
             points = np.concat((points, new_point))
@@ -119,6 +120,10 @@ class PointCollection:
             [[cos(angle), sin(angle)], [-sin(angle), cos(angle)]])
         return points @ rotation
 
+    def _scale_points(self, points: np.array, scale: float) -> np.array:
+        scaler = np.array([[scale, 0], [0, scale]])
+        return np.dot(points, scaler)
+
     def _skewed_uniform(self, value: float) -> float:
         """
         skews a uniform(0,1) towards 1, multiplies this with a value and returns it
@@ -135,7 +140,7 @@ class PointCollection:
             uni = 1
         return uni*value
 
-    def add_ellipse_collection(self, number_of_points: int, a: float, b: float, label: int, rotation_angle: float = 0, position_x: float = 0, position_y: float = 0) -> None:
+    def add_ellipse_collection(self, number_of_points: int, a: float, b: float, label: int, rotation_angle: float = 0, position_x: float = 0, position_y: float = 0, max_ellipse_angle: float = 2*pi, scale: float = 1) -> None:
         """
         User method that adds an ellipse shape and all necessary variables.
 
@@ -165,11 +170,14 @@ class PointCollection:
             raise TypeError
         if not isinstance(position_y, (int, float)):
             raise TypeError
+        if not isinstance(scale, (int, float)):
+            raise TypeError
         self.collections_points.append(
-            self._create_ellipse_points(number=number_of_points, a=a, b=b))
+            self._create_ellipse_points(number=number_of_points, a=a, b=b, max_angle=max_ellipse_angle))
         self.collections_locations.append([position_x, position_y])
         self.collections_rotations.append(rotation_angle)
         self.collections_labels.append(label)
+        self.collections_scales.append(scale)
 
     def change_collection_rotation(self, index: int, rotation_angle: float) -> None:
         """
@@ -210,6 +218,44 @@ class PointCollection:
             raise IndexError
         self.collections_locations[index] = [position_x, position_y]
 
+    def change_collection_scale(self, index: int, scale: float) -> None:
+        """
+        Saves a new scale for a collection of points in self.collections_scales list.
+
+        Args:
+            index (int): index of the point collection.
+            scale (float): the new scale of the point collection.
+
+        Raises:
+            IndexError: Raised if the index was not found.
+            ValueError: Raised if the scale value cannot be converted to a float.
+        """
+        try:
+            self.collections_scales[index] = float(scale)
+        except IndexError as exc:
+            raise IndexError from exc
+        except ValueError as exc:
+            raise ValueError from exc
+        
+    def remove_collection(self, index: int) -> None:
+        """
+        Removes stored information about a collection of points from all instance variables.
+
+        Args:
+            index (int): Index of the collection of points to be removed.
+
+        Raises:
+            IndexError: Raised if index could not be found. 
+        """
+        try:
+            self.collections_labels.pop(index)
+            self.collections_locations.pop(index)
+            self.collections_points.pop(index)
+            self.collections_rotations.pop(index)
+            self.collections_scales.pop(index)
+        except IndexError as exc:
+            raise IndexError from exc
+
     def build_dataframe(self, total_x_location: float = None, total_y_location: float = None, total_rotation_angle: float = None) -> pd.DataFrame:
         """
         Uses the stored information to perform location and rotation changes to all collections.
@@ -224,6 +270,7 @@ class PointCollection:
         all_labels = np.array([]).reshape(0, 1)
         for index, element in enumerate(self.collections_points):
             points = element
+            points = self._scale_points(points, self.collections_scales[index])
             points = self._rotate_points(
                 points, self.collections_rotations[index])
             points = self._move_points(
@@ -234,9 +281,11 @@ class PointCollection:
             all_labels = np.concat((all_labels, label_array), axis=0)
             all_points = np.concat((all_points, points), axis=0)
         if total_rotation_angle:
-            all_points = self._rotate_points(points=all_points, angle=total_rotation_angle)
+            all_points = self._rotate_points(
+                points=all_points, angle=total_rotation_angle)
         if total_x_location and total_y_location:
-            all_points = self._move_points(points=all_points, location=[total_x_location,total_y_location])
+            all_points = self._move_points(points=all_points, location=[
+                                           total_x_location, total_y_location])
         matrix = np.concat((all_points, all_labels), axis=1)
         df = pd.DataFrame(matrix, columns=["x", "y", "label"])
         df["label"] = df["label"].astype(int)

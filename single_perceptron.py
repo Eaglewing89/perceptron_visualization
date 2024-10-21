@@ -25,16 +25,23 @@ from classes import Perceptron, PointCollection
 points = PointCollection()
 
 points.add_ellipse_collection(number_of_points=50, a=2, b=1, label=-1)
-
 points.change_collection_rotation(index=0, rotation_angle=0.2*pi)
 points.change_collection_location(index=0, position_x=1.75, position_y=1)
+#points.change_collection_scale(index=0, scale=5)
+
+points.add_ellipse_collection(number_of_points=37, a=2*0.7, b=1*0.7, label=-1)
+points.change_collection_rotation(index=1, rotation_angle=-0.2*pi)
+points.change_collection_location(index=1, position_x=1.75*0.7, position_y=-1)
 
 points.add_ellipse_collection(number_of_points=50, a=2, b=1, label=1)
+points.change_collection_rotation(index=2, rotation_angle=-0.2*pi)
+points.change_collection_location(index=2, position_x=-1.75, position_y=1)
 
-points.change_collection_rotation(index=1, rotation_angle=-0.2*pi)
-points.change_collection_location(index=1, position_x=-1.75, position_y=1)
+points.add_ellipse_collection(number_of_points=37, a=2*0.7, b=1*0.7, label=1)
+points.change_collection_rotation(index=3, rotation_angle=0.2*pi)
+points.change_collection_location(index=3, position_x=-1.75*0.7, position_y=-1)
 
-df = points.build_dataframe(total_rotation_angle=0.5*pi)
+df = points.build_dataframe()
 
 
 x_train = np.array(df.drop(columns="label"))
