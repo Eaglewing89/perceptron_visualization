@@ -1,25 +1,40 @@
+from math import pi
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 from functions import create_circle_class, create_square_class, create_figure
-from classes import Perceptron
+from classes import Perceptron, PointCollection
 
 
 # np.set_printoptions(precision=2)
 
 
-class_one = create_square_class(50, -1)
-class_two = create_circle_class(50, 1)
+# class_one = create_square_class(50, -1)
+# class_two = create_circle_class(50, 1)
 
-df_one = pd.DataFrame(class_one, columns=["x", "y", "label"])
-df_two = pd.DataFrame(class_two, columns=["x", "y", "label"])
-df_two["x"] = df_two["x"]+1.5
-df_two["y"] = df_two["y"]+1.5
+# df_one = pd.DataFrame(class_one, columns=["x", "y", "label"])
+# df_two = pd.DataFrame(class_two, columns=["x", "y", "label"])
+# df_two["x"] = df_two["x"]+1.5
+# df_two["y"] = df_two["y"]+1.5
 
-df = pd.concat([df_one, df_two])
+# df = pd.concat([df_one, df_two])
 
-df = df.sample(frac=1)
-df = df.reset_index(drop=True)
+# df = df.sample(frac=1)
+# df = df.reset_index(drop=True)
+
+points = PointCollection()
+
+points.add_ellipse_collection(number_of_points=50, a=2, b=1, label=-1)
+
+points.change_collection_rotation(index=0, rotation_angle=0.2*pi)
+points.change_collection_location(index=0, position_x=1.75, position_y=1)
+
+points.add_ellipse_collection(number_of_points=50, a=2, b=1, label=1)
+
+points.change_collection_rotation(index=1, rotation_angle=-0.2*pi)
+points.change_collection_location(index=1, position_x=-1.75, position_y=1)
+
+df = points.build_dataframe(total_rotation_angle=0.5*pi)
 
 
 x_train = np.array(df.drop(columns="label"))
