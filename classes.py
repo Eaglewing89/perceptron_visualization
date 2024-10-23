@@ -140,7 +140,7 @@ class PointCollection:
             uni = 1
         return uni*value
 
-    def add_ellipse_collection(self, number_of_points: int, a: float, b: float, label: int, rotation_angle: float = 0, position_x: float = 0, position_y: float = 0, max_ellipse_angle: float = 2*pi, scale: float = 1) -> None:
+    def add_ellipse_collection(self, number_of_points: int, a: float = 1, b: float = 1, label: int = 1, rotation_angle: float = 0, position_x: float = 0, position_y: float = 0, max_ellipse_angle: float = 2*pi, scale: float = 1) -> None:
         """
         User method that adds an ellipse shape and all necessary variables.
 
@@ -174,10 +174,11 @@ class PointCollection:
             raise TypeError
         self.collections_points.append(
             self._create_ellipse_points(number=number_of_points, a=a, b=b, max_angle=max_ellipse_angle))
-        self.collections_locations.append([position_x, position_y])
-        self.collections_rotations.append(rotation_angle)
+        self.collections_locations.append(
+            [float(position_x), float(position_y)])
+        self.collections_rotations.append(float(rotation_angle))
         self.collections_labels.append(label)
-        self.collections_scales.append(scale)
+        self.collections_scales.append(float(scale))
 
     def change_collection_rotation(self, index: int, rotation_angle: float) -> None:
         """
@@ -216,7 +217,8 @@ class PointCollection:
             raise TypeError
         if not index in range(len(self.collections_rotations)):
             raise IndexError
-        self.collections_locations[index] = [position_x, position_y]
+        self.collections_locations[index] = [
+            float(position_x), float(position_y)]
 
     def change_collection_scale(self, index: int, scale: float) -> None:
         """
@@ -236,7 +238,27 @@ class PointCollection:
             raise IndexError from exc
         except ValueError as exc:
             raise ValueError from exc
-        
+
+    def change_collection_label(self, index: int, label: int):
+        """
+        Change the label of a collection.
+
+        Args:
+            index (int): Collection index.
+            label (int): New label.
+
+        Raises:
+            ValueError: Raised if label is not int or not -1 or 1.
+            IndexError: Raised if collection index not found.
+        """
+        try:
+            if label in [-1, 1]:
+                self.collections_labels[index] = int(label)
+            else:
+                raise ValueError
+        except IndexError as exc:
+            raise IndexError from exc
+
     def remove_collection(self, index: int) -> None:
         """
         Removes stored information about a collection of points from all instance variables.
@@ -253,6 +275,45 @@ class PointCollection:
             self.collections_points.pop(index)
             self.collections_rotations.pop(index)
             self.collections_scales.pop(index)
+        except IndexError as exc:
+            raise IndexError from exc
+
+    def number_of_collections(self) -> int:
+        """
+        Checks and returns the total number of collections.
+
+        Returns:
+            int: Number of collections stored.
+        """
+        return len(self.collections_labels)
+
+    def get_collection_location(self, index: int):
+        return self.collections_locations[index]
+
+    def get_collection_scale(self, index: int):
+        return self.collections_scales[index]
+
+    def get_collection_rotation(self, index: int):
+        return self.collections_rotations[index]
+
+    def get_collection_label(self, index: int):
+        return self.collections_labels[index]
+
+    def build_single_collection_dataframe(self, index: int):
+        try:
+            points = self.collections_points[index]
+            points = self._scale_points(points, self.collections_scales[index])
+            points = self._rotate_points(
+                points, self.collections_rotations[index])
+            points = self._move_points(
+                points, self.collections_locations[index])
+            label = self.collections_labels[index]
+            length = points.shape[0]
+            label_array = (np.ones(length)*label).reshape(length, 1)
+            points = np.concat((points, label_array), axis=1)
+            df = pd.DataFrame(points, columns=["x", "y", "label"])
+            df["label"] = df["label"].astype(int)
+            return df
         except IndexError as exc:
             raise IndexError from exc
 
