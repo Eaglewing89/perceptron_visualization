@@ -195,7 +195,7 @@ class PointCollection:
         self.collections_labels.append(label)
         self.collections_scales.append(float(scale))
 
-    def add_rectangle_collection(self, number_of_points: int, short_side: float) -> None:
+    def add_rectangle_collection(self, number_of_points: int, short_side: float = 1) -> None:
         try:
             self.collections_points.append(self._create_rectangle_points(number_of_points, short_side))
             self.collections_locations.append([float(0),float(0)])

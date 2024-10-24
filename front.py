@@ -105,6 +105,14 @@ def remove_collection(i: int):
     st.session_state.collection_selection = "All"
     st.session_state.add_edit = i
 
+def remove_all_collections(i: int):
+    total_collections = st.session_state.dataset.number_of_collections()
+    if total_collections > 0:
+        for _ in range(total_collections):
+            st.session_state.dataset.remove_collection(0)
+        st.session_state.add_edit = i
+
+
 # Callback for controlling stage with buttons
 
 
@@ -176,8 +184,12 @@ if st.session_state.stage == 1:
             # st.selectbox("Select collection", options=collection_selections, key="collection_selection")
 
             if st.session_state.collection_selection == "All":
-                st.write("Editing 'All' not yet implemented")
-                st.write(st.session_state.collection_selection)
+                total_collections = st.session_state.dataset.number_of_collections()
+                if total_collections > 0:
+                    st.button("Remove all collections", use_container_width=True,
+                        on_click=remove_all_collections, args=[4])
+                else:
+                    st.write("There are no point collections in the dataset. Press 'Add new points' to build a dataset.")
 
             else:
                 # update states based on collection selection
@@ -205,7 +217,7 @@ if st.session_state.stage == 1:
                 # scale
                 st.slider("Scale",
                           min_value=0.01,
-                          max_value=2.0,
+                          max_value=3.0,
                           key="slider_value_scale",
                           on_change=on_slider_change_scale)
                 # rotation
@@ -226,7 +238,7 @@ if st.session_state.stage == 1:
                           on_click=remove_collection, args=[3])
 
         if st.session_state.add_edit == 2:
-            add_options = ["Circle", "Square", "Ellipse"]
+            add_options = ["Circle", "Square", "Ellipse", "Rectangle"]
             add_type = st.selectbox("Collection type", options=add_options)
             if add_type == "Circle":
                 number_of_points = st.number_input(
@@ -235,18 +247,32 @@ if st.session_state.stage == 1:
                     st.session_state.dataset.add_ellipse_collection(
                         number_of_points)
             elif add_type == "Square":
-                st.write("square here")
+                number_of_points = st.number_input(
+                    "Number of points", min_value=10, max_value=100, step=10)
+                if st.button("Add collection!", use_container_width=True):
+                    st.session_state.dataset.add_rectangle_collection(
+                        number_of_points)
             elif add_type == "Ellipse":
-                st.write("ellipse here")
                 number_of_points = st.number_input(
                     "Number of points", min_value=10, max_value=100, step=10)
                 eccentricity = st.number_input(
-                    "Eccentricity", min_value=0.1, max_value=2.0, step=0.1)
+                    "Eccentricity", min_value=0.1, max_value=1.0, step=0.1)
                 if st.button("Add collection!", use_container_width=True):
                     st.session_state.dataset.add_ellipse_collection(
                         number_of_points, eccentricity)
+            elif add_type == "Rectangle":
+                number_of_points = st.number_input(
+                    "Number of points", min_value=10, max_value=100, step=10)
+                short_side = st.number_input(
+                    "Short side length", min_value=0.1, max_value=1.0, step=0.1)
+                if st.button("Add collection!", use_container_width=True):
+                    st.session_state.dataset.add_rectangle_collection(
+                        number_of_points, short_side)
+
         if st.session_state.add_edit == 3:
             st.write("Point collection successfully removed from the set")
+        if st.session_state.add_edit == 4:
+            st.write("All point collections successfully removed")
 
     with col_right:
         view_selection = st.selectbox("Select view", options=(
@@ -310,8 +336,6 @@ if st.session_state.stage == 2:
     x_train = np.array(df.drop(columns="label"))
     y_train = np.array(df["label"])
 
-    # x_train = df.drop(columns="label")
-    # y_train = df["label"]
     epochs = 40
 
     w_history = st.session_state.perceptron.fit(
@@ -321,6 +345,9 @@ if st.session_state.stage == 2:
                             css_styles=["""
                             .main-svg:nth-of-type(1) {
                                 border-radius: 0.6em;
+                                border-style: solid;
+                                border-width: 1px;
+                                border-color: #41444C;
                             }""",
                                         """
                             .main-svg:nth-of-type(2) {
@@ -393,8 +420,8 @@ if st.session_state.stage == 2:
                 )
             ]
         )
-        fig.update_layout(paper_bgcolor="#262730")
-        fig.update_layout(plot_bgcolor="#262730")
+        fig.update_layout(paper_bgcolor="#131720")
+        fig.update_layout(plot_bgcolor="#131720")
         st.plotly_chart(fig)
         st.write("")
 
