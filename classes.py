@@ -2,7 +2,7 @@
 Collection of necessary classes
 """
 from math import pi, sin, cos
-from random import uniform
+from random import uniform, choice
 import pandas as pd
 import numpy as np
 
@@ -88,6 +88,21 @@ class PointCollection:
             angle = uniform(0, max_angle)
             new_point = np.array(
                 [[self._skewed_uniform(a*cos(angle)), self._skewed_uniform(b*sin(angle))]])
+            points = np.concat((points, new_point))
+        return points
+    
+    def _create_rectangle_points(self, number: int, short_side: float) -> np.array:
+        random_choice = [-1,1]
+        points = np.array([]).reshape(0, 2)
+        for _ in range(number):
+            if choice(random_choice) == 1:
+                x = 1*short_side
+                y = uniform(0,1)
+            else:
+                x = uniform(0,1)*short_side
+                y = 1
+            skew = self._skewed_uniform(1)
+            new_point = np.array([[x*choice(random_choice)*skew,y*choice(random_choice)*skew]])
             points = np.concat((points, new_point))
         return points
 
@@ -179,6 +194,16 @@ class PointCollection:
         self.collections_rotations.append(float(rotation_angle))
         self.collections_labels.append(label)
         self.collections_scales.append(float(scale))
+
+    def add_rectangle_collection(self, number_of_points: int, short_side: float) -> None:
+        try:
+            self.collections_points.append(self._create_rectangle_points(number_of_points, short_side))
+            self.collections_locations.append([float(0),float(0)])
+            self.collections_rotations.append(float(0))
+            self.collections_labels.append(int(1))
+            self.collections_scales.append(float(1))
+        except ValueError as exc:
+            raise ValueError from exc
 
     def change_collection_rotation(self, index: int, rotation_angle: float) -> None:
         """
