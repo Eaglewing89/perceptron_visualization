@@ -204,35 +204,107 @@ if st.session_state.stage == 1:
                 st.session_state.slider_value_label = st.session_state.dataset.get_collection_label(
                     st.session_state.collection_selection)
                 # location
-                st.slider("X",
-                          min_value=-5.0,
-                          max_value=5.0,
-                          key="slider_value_x_loc",
-                          on_change=on_slider_change_loc)
-                st.slider("Y",
-                          min_value=-5.0,
-                          max_value=5.0,
-                          key="slider_value_y_loc",
-                          on_change=on_slider_change_loc)
+                with stylable_container(key="location_sliders",
+                                        css_styles=["""
+                                        {
+                                            background-color: #262730;
+                                            border-radius: 0.6em;
+                                            padding: 0.5em;
+                                        }
+                                        """,
+                                                        """
+                                        div {
+                                            padding-right: 0.5rem
+                                        }
+                                        """,
+                                                        """
+                                        div {
+                                            padding-left: 0.1rem
+                                        }
+                                        """]):
+                    st.slider("X",
+                            min_value=-5.0,
+                            max_value=5.0,
+                            key="slider_value_x_loc",
+                            on_change=on_slider_change_loc)
+                    st.slider("Y",
+                            min_value=-5.0,
+                            max_value=5.0,
+                            key="slider_value_y_loc",
+                            on_change=on_slider_change_loc)
                 # scale
-                st.slider("Scale",
-                          min_value=0.01,
-                          max_value=3.0,
-                          key="slider_value_scale",
-                          on_change=on_slider_change_scale)
+                with stylable_container(key="scale_slider",
+                                        css_styles=["""
+                                        {
+                                            background-color: #262730;
+                                            border-radius: 0.6em;
+                                            padding: 0.5em;
+                                        }
+                                        """,
+                                                        """
+                                        div {
+                                            padding-right: 0.5rem
+                                        }
+                                        """,
+                                                        """
+                                        div {
+                                            padding-left: 0.1rem
+                                        }
+                                        """]):
+                    st.slider("Scale",
+                            min_value=0.01,
+                            max_value=3.0,
+                            key="slider_value_scale",
+                            on_change=on_slider_change_scale)
                 # rotation
-                st.slider("Angle",
-                          min_value=-2.0,
-                          max_value=2.0,
-                          step=0.1,
-                          key="slider_value_rotation",
-                          format="%fπ",
-                          on_change=on_slider_change_rotation)
+                with stylable_container(key="angle_slider",
+                                        css_styles=["""
+                                        {
+                                            background-color: #262730;
+                                            border-radius: 0.6em;
+                                            padding: 0.5em;
+                                        }
+                                        """,
+                                                        """
+                                        div {
+                                            padding-right: 0.5rem
+                                        }
+                                        """,
+                                                        """
+                                        div {
+                                            padding-left: 0.1rem
+                                        }
+                                        """]):
+                    st.slider("Angle",
+                            min_value=-2.0,
+                            max_value=2.0,
+                            step=0.1,
+                            key="slider_value_rotation",
+                            format="%fπ",
+                            on_change=on_slider_change_rotation)
                 # label
-                st.select_slider("Class label",
-                                 options=[-1, 1],
-                                 key="slider_value_label",
-                                 on_change=on_slider_change_label)
+                with stylable_container(key="label_slider",
+                                        css_styles=["""
+                                        {
+                                            background-color: #262730;
+                                            border-radius: 0.6em;
+                                            padding: 0.5em;
+                                        }
+                                        """,
+                                                        """
+                                        div {
+                                            padding-right: 0.5rem
+                                        }
+                                        """,
+                                                        """
+                                        div {
+                                            padding-left: 0.1rem
+                                        }
+                                        """]):
+                    st.select_slider("Class label",
+                                    options=[-1, 1],
+                                    key="slider_value_label",
+                                    on_change=on_slider_change_label)
                 # removal
                 st.button("Remove collection", use_container_width=True,
                           on_click=remove_collection, args=[3])
@@ -279,55 +351,81 @@ if st.session_state.stage == 1:
             "Full view", "Current selecion"), index=0)
         if st.session_state.collection_selection == "All" or view_selection == "Full view":
             df = st.session_state.dataset.build_dataframe()
-            fig = go.Figure()
-            for label_value in [-1, 1]:
-                mask = df["label"] == label_value
-                fig.add_trace(go.Scatter(
-                    x=df[mask]["x"],
-                    y=df[mask]["y"],
-                    mode="markers",
-                    marker=dict(color="red" if label_value == -1 else "blue"),
-                    name=f"Label {label_value}"
-                ))
-
-            # highlight editing collection
-            if not st.session_state.collection_selection == "All":
-                df = st.session_state.dataset.build_single_collection_dataframe(
-                    st.session_state.collection_selection)
+            with stylable_container(key="full_view_plot",
+                                    css_styles=["""
+                                    .main-svg:nth-of-type(1) {
+                                        border-radius: 0.6em;
+                                        border-style: solid;
+                                        border-width: 1px;
+                                        border-color: #41444C;
+                                    }""",
+                                                """
+                                    .main-svg:nth-of-type(2) {
+                                        padding: 0.6em;
+                                    }"""]):
+                fig = go.Figure()
                 for label_value in [-1, 1]:
                     mask = df["label"] == label_value
                     fig.add_trace(go.Scatter(
                         x=df[mask]["x"],
                         y=df[mask]["y"],
                         mode="markers",
-                        marker=dict(
-                            color="rgba(31, 119, 180, 0.5)" if label_value == -1 else "rgba(255, 127, 14, 0.3)"),
+                        marker=dict(color="red" if label_value == -1 else "blue"),
                         name=f"Label {label_value}"
                     ))
-# color_discrete_map = {-1: 'rgb(31, 119, 180)', 1: 'rgb(255, 127, 14)'}
 
-            fig.update_layout(showlegend=False)
-            fig.update_yaxes(scaleanchor="x",
-                             scaleratio=1
-                             )
-            st.plotly_chart(fig)
+                # highlight editing collection
+                if not st.session_state.collection_selection == "All":
+                    df = st.session_state.dataset.build_single_collection_dataframe(
+                        st.session_state.collection_selection)
+                    for label_value in [-1, 1]:
+                        mask = df["label"] == label_value
+                        fig.add_trace(go.Scatter(
+                            x=df[mask]["x"],
+                            y=df[mask]["y"],
+                            mode="markers",
+                            marker=dict(
+                                color="rgba(31, 119, 180, 0.5)" if label_value == -1 else "rgba(255, 127, 14, 0.3)"),
+                            name=f"Label {label_value}"
+                        ))
+                fig.update_layout(showlegend=False)
+                fig.update_yaxes(scaleanchor="x",
+                                scaleratio=1
+                                )
+                fig.update_layout(paper_bgcolor="#131720")
+                fig.update_layout(plot_bgcolor="#131720")
+                st.plotly_chart(fig)
         else:
             df = st.session_state.dataset.build_single_collection_dataframe(
                 st.session_state.collection_selection)
-            fig = go.Figure()
-            for label_value in [-1, 1]:
-                mask = df["label"] == label_value
-                fig.add_trace(go.Scatter(
-                    x=df[mask]["x"],
-                    y=df[mask]["y"],
-                    mode="markers",
-                    marker=dict(color="red" if label_value == -1 else "blue"),
-                    name=f"Label {label_value}"
-                ))
-            fig.update_yaxes(scaleanchor="x",
-                             scaleratio=1
-                             )
-            st.plotly_chart(fig)
+            with stylable_container(key="selection_view_plot",
+                                    css_styles=["""
+                                    .main-svg:nth-of-type(1) {
+                                        border-radius: 0.6em;
+                                        border-style: solid;
+                                        border-width: 1px;
+                                        border-color: #41444C;
+                                    }""",
+                                                """
+                                    .main-svg:nth-of-type(2) {
+                                        padding: 0.6em;
+                                    }"""]):
+                fig = go.Figure()
+                for label_value in [-1, 1]:
+                    mask = df["label"] == label_value
+                    fig.add_trace(go.Scatter(
+                        x=df[mask]["x"],
+                        y=df[mask]["y"],
+                        mode="markers",
+                        marker=dict(color="red" if label_value == -1 else "blue"),
+                        name=f"Label {label_value}"
+                    ))
+                fig.update_yaxes(scaleanchor="x",
+                                scaleratio=1
+                                )
+                fig.update_layout(paper_bgcolor="#131720")
+                fig.update_layout(plot_bgcolor="#131720")
+                st.plotly_chart(fig)
 
 if st.session_state.stage == 2:
 
