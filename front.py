@@ -129,20 +129,36 @@ def set_add_edit(i: int) -> None:
 @st.cache_data
 def pregen_datapoints():
     st.session_state.dataset.add_ellipse_collection(
-        number_of_points=50, a=2, b=1, label=-1)
+        number_of_points=50, a=0.4, b=1, label=1)
     st.session_state.dataset.change_collection_rotation(
-        index=0, rotation_angle=0.2*pi)
+        index=0, rotation_angle=0.3*pi)
     st.session_state.dataset.change_collection_location(
-        index=0, position_x=1.75, position_y=2)
-    st.session_state.dataset.change_collection_scale(index=0, scale=1.1)
+        index=0, position_x=-1.84, position_y=0.98)
+    st.session_state.dataset.change_collection_scale(index=0, scale=1.0)
 
     st.session_state.dataset.add_ellipse_collection(
-        number_of_points=50, a=2, b=1, label=1)
+        number_of_points=40, a=0.4, b=1, label=1)
     st.session_state.dataset.change_collection_rotation(
         index=1, rotation_angle=-0.2*pi)
     st.session_state.dataset.change_collection_location(
-        index=1, position_x=-1.75, position_y=-1)
-    st.session_state.dataset.change_collection_scale(index=1, scale=0.1)
+        index=1, position_x=-1.40, position_y=0.0)
+    st.session_state.dataset.change_collection_scale(index=1, scale=0.66)
+
+    st.session_state.dataset.add_ellipse_collection(
+        number_of_points=50, a=0.4, b=1, label=-1)
+    st.session_state.dataset.change_collection_rotation(
+        index=2, rotation_angle=-0.2*pi)
+    st.session_state.dataset.change_collection_location(
+        index=2, position_x=-0.22, position_y=1.21)
+    st.session_state.dataset.change_collection_scale(index=2, scale=1.0)
+
+    st.session_state.dataset.add_ellipse_collection(
+        number_of_points=40, a=0.4, b=1, label=-1)
+    st.session_state.dataset.change_collection_rotation(
+        index=3, rotation_angle=0.2*pi)
+    st.session_state.dataset.change_collection_location(
+        index=3, position_x=-0.40, position_y=0.1)
+    st.session_state.dataset.change_collection_scale(index=3, scale=0.66)
 
 
 pregen_datapoints()
@@ -428,118 +444,141 @@ if st.session_state.stage == 1:
                 st.plotly_chart(fig)
 
 if st.session_state.stage == 2:
+    total_collections = st.session_state.dataset.number_of_collections()
+    if total_collections > 0:
+        df = st.session_state.dataset.build_dataframe()
 
-    df = st.session_state.dataset.build_dataframe()
+        x_train = np.array(df.drop(columns="label"))
+        y_train = np.array(df["label"])
 
-    x_train = np.array(df.drop(columns="label"))
-    y_train = np.array(df["label"])
+        epochs = 40
 
-    epochs = 40
+        w_history = st.session_state.perceptron.fit(
+            x_train=x_train, y_train=y_train, epochs=epochs)
 
-    w_history = st.session_state.perceptron.fit(
-        x_train=x_train, y_train=y_train, epochs=epochs)
+        with stylable_container(key="perceptron_visual",
+                                css_styles=["""
+                                .main-svg:nth-of-type(1) {
+                                    border-radius: 0.6em;
+                                    border-style: solid;
+                                    border-width: 1px;
+                                    border-color: #41444C;
+                                }""",
+                                            """
+                                .main-svg:nth-of-type(2) {
+                                    padding: 0.6em;
+                                }"""]):
+            # Create the base figure
+            fig = create_figure(weights=w_history[0],
+                                x_train=x_train, df=df)
 
-    with stylable_container(key="perceptron_visual",
-                            css_styles=["""
-                            .main-svg:nth-of-type(1) {
-                                border-radius: 0.6em;
-                                border-style: solid;
-                                border-width: 1px;
-                                border-color: #41444C;
-                            }""",
-                                        """
-                            .main-svg:nth-of-type(2) {
-                                padding: 0.6em;
-                            }"""]):
-        # Create the base figure
-        fig = create_figure(weights=w_history[0],
-                            x_train=x_train, df=df)
+            # Calculate the axis ranges
+            x_min, x_max = x_train[:, 0].min() - 0.5, x_train[:, 0].max() + 0.5
+            y_min, y_max = x_train[:, 1].min() - 0.5, x_train[:, 1].max() + 0.5
 
-        # Calculate the axis ranges
-        x_min, x_max = x_train[:, 0].min() - 0.5, x_train[:, 0].max() + 0.5
-        y_min, y_max = x_train[:, 1].min() - 0.5, x_train[:, 1].max() + 0.5
+            # Update the layout
+            fig.update_layout(
+                title='                        Perceptron Decision Boundary',
+                xaxis_title='X',
+                yaxis_title='Y',
+                width=800,
+                height=600,
+                xaxis={"range": [x_min, x_max], 'visible': False,
+                    'showticklabels': False, "hoverformat": '.2f'},
+                yaxis={"range": [y_min, y_max], 'visible': False,
+                    'showticklabels': False, "hoverformat": '.2f'},
+            )
 
-        # Update the layout
-        fig.update_layout(
-            title='                        Perceptron Decision Boundary',
-            xaxis_title='X',
-            yaxis_title='Y',
-            width=800,
-            height=600,
-            xaxis={"range": [x_min, x_max], 'visible': False,
-                   'showticklabels': False, "hoverformat": '.2f'},
-            yaxis={"range": [y_min, y_max], 'visible': False,
-                   'showticklabels': False, "hoverformat": '.2f'},
-        )
+            fig.update_yaxes(
+                scaleanchor="x",
+                scaleratio=1,
+            )
 
-        fig.update_yaxes(
-            scaleanchor="x",
-            scaleratio=1,
-        )
+            # Create and add frames
+            frames = [go.Frame(data=create_figure(weights=w, x_train=x_train, df=df).data, name=str(i))
+                    for i, w in enumerate(w_history)]
+            fig.frames = frames
 
-        # Create and add frames
-        frames = [go.Frame(data=create_figure(weights=w, x_train=x_train, df=df).data, name=str(i))
-                  for i, w in enumerate(w_history)]
-        fig.frames = frames
+            # Add slider and play button
+            fig.update_layout(
+                updatemenus=[
+                    dict(
+                        type='buttons',
+                        showactive=False,
+                        buttons=[
+                            dict(label='Play',
+                                method='animate',
+                                args=[None, {'frame': {'duration': 100, 'redraw': True}, 'fromcurrent': True}]),
+                            dict(label='Pause',
+                                method='animate',
+                                args=[[None], {'frame': {'duration': 0, 'redraw': True}, 'mode': 'immediate', 'transition': {'duration': 0}}])
+                        ]
+                    )
+                ],
+                sliders=[
+                    dict(
+                        steps=[
+                            dict(
+                                method='animate',
+                                args=[[str(i)], {'frame': {'duration': 100,
+                                                        'redraw': True}, 'mode': 'immediate'}],
+                                label=str(i+1)
+                            )
+                            for i in range(epochs)
+                        ],
+                        transition={'duration': 0},
+                        x=0,
+                        y=0,
+                        currentvalue={'font': {'size': 12}, 'prefix': 'Iteration: ',
+                                    'visible': True, 'xanchor': 'center'},
+                        len=0.9,
+                    )
+                ]
+            )
+            fig.update_layout(paper_bgcolor="#131720")
+            fig.update_layout(plot_bgcolor="#131720")
+            st.plotly_chart(fig)
+            st.write("")
 
-        # Add slider and play button
-        fig.update_layout(
-            updatemenus=[
-                dict(
-                    type='buttons',
-                    showactive=False,
-                    buttons=[
-                        dict(label='Play',
-                             method='animate',
-                             args=[None, {'frame': {'duration': 100, 'redraw': True}, 'fromcurrent': True}]),
-                        dict(label='Pause',
-                             method='animate',
-                             args=[[None], {'frame': {'duration': 0, 'redraw': True}, 'mode': 'immediate', 'transition': {'duration': 0}}])
-                    ]
-                )
-            ],
-            sliders=[
-                dict(
-                    steps=[
-                        dict(
-                            method='animate',
-                            args=[[str(i)], {'frame': {'duration': 100,
-                                                       'redraw': True}, 'mode': 'immediate'}],
-                            label=str(i+1)
-                        )
-                        for i in range(epochs)
-                    ],
-                    transition={'duration': 0},
-                    x=0,
-                    y=0,
-                    currentvalue={'font': {'size': 12}, 'prefix': 'Iteration: ',
-                                  'visible': True, 'xanchor': 'center'},
-                    len=0.9,
-                )
-            ]
-        )
-        fig.update_layout(paper_bgcolor="#131720")
-        fig.update_layout(plot_bgcolor="#131720")
-        st.plotly_chart(fig)
-        st.write("")
-
-    with stylable_container(key="perceptron_explanation",
-                            css_styles=["""
-                            {
-                                background-color: #262730;
-                                border-radius: 0.6em;
-                                padding: 0.5em;
-                            }
-                            """,
-                                        """
-                            div {
-                                padding-right: 0.5rem
-                            }
-                            """,
-                                        """
-                            div {
-                                padding-left: 0.1rem
-                            }
-                            """]):
-        st.write("A 'somewhat' simplified explanation:")
-        st.write("The Perceptron algorithm uses a weight vector to create a decision boundary shown in green above. It will then go through each point in the training set and take the inner product of the weight vector and the point. The result of this will be a positive value if the point lies above the decision boundary and negative otherwise. In our case, positive or negative is a prediction of what class it belongs to. This is then compared with the actual class value of our training set (either -1 or 1). If it is not the same the point is considered misclassified and we update our weights in the direction where it would have been correctly classified. We do this operation for every point in the training set, and in our case we go through the entire set 40 times")
+        with stylable_container(key="perceptron_explanation",
+                                css_styles=["""
+                                {
+                                    background-color: #262730;
+                                    border-radius: 0.6em;
+                                    padding: 0.5em;
+                                }
+                                """,
+                                            """
+                                div {
+                                    padding-right: 0.5rem
+                                }
+                                """,
+                                            """
+                                div {
+                                    padding-left: 0.1rem
+                                }
+                                """]):
+            st.write("A 'somewhat' simplified explanation:")
+            st.write("The Perceptron algorithm uses a weight vector to create a decision boundary shown in purple above. It will then go through each point in the training set and take the inner product of the weight vector and the point. The result of this will be a positive value if the point lies above the decision boundary and negative otherwise. In our case, positive or negative is a prediction of what class it belongs to. This is then compared with the actual class value of our training set (either -1 or 1). If it is not the same the point is considered misclassified and we update our weights in the direction where it would have been correctly classified. We do this operation for every point in the training set, and in our case we go through the entire set 40 times")
+    else:
+        with stylable_container(key="perceptron_explanation",
+                                css_styles=["""
+                                {
+                                    background-color: #262730;
+                                    border-radius: 0.6em;
+                                    padding: 0.5em;
+                                }
+                                """,
+                                            """
+                                div {
+                                    padding-right: 0.5rem
+                                }
+                                """,
+                                            """
+                                div {
+                                    padding-left: 0.1rem
+                                }
+                                """]):
+            st.write("The dataset is currently empty.")
+            st.write("To proceed with perceptron training you must add at least one point collection to your dataset.")
+            st.write("-> Create/edit dataset -> Add new points")

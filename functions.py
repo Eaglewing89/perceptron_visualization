@@ -74,6 +74,6 @@ def create_figure(weights: np.array, x_train: pd.DataFrame, df: pd.DataFrame):
 
     # Add the decision boundary line
     fig.add_trace(go.Scatter(x=x_range, y=y_boundary, mode='lines', name='Boundary      ',
-                             line=dict(color='green', width=2)))
+                             line=dict(color="#401266", width=2)))
 
     return fig
