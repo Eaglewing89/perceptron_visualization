@@ -376,3 +376,219 @@ class PointCollection:
         df = pd.DataFrame(matrix, columns=["x", "y", "label"])
         df["label"] = df["label"].astype(int)
         return df
+
+class MultiLayerPerceptron():
+    """
+    A multi layer perceptron model.
+    This one is designed to save the weight history at given intervals during the training process 
+    for the purpose of giving the option to predict based on previous weights. 
+    """
+    def __init__(self, learning_rate: float, epochs: int, hidden_layers: list[int]) -> None:
+        """
+        Init method
+
+        Args:
+            learning_rate (float): eta - how strong are each update. Recommend around 0.01 or less.
+            epochs (int): how many times to loop through all points during training. 
+            hidden_layers (list[int]): structure of hidden layers. Each element is nr of nodes. 
+
+        Raises:
+            ValueError: raised if you do not follow type hints. 
+        """
+        self.weights_history = []
+        self.biases_history = []
+        try:
+            self.learning_rate = float(learning_rate)
+            self.epochs = int(epochs)
+            for layer in hidden_layers:
+                layer = int(layer)
+            self.hidden_layers = list(hidden_layers)
+        except ValueError as err:
+            raise ValueError from err
+
+    def get_history_length(self) -> int:
+        """
+        Get the number of weights stored in history.
+
+        Returns:
+            int: number of weights total.
+        """
+        return len(self.weights_history)
+
+    def _relu(self, x: float) -> float:
+        """
+        Rectified Linear Unit.
+        Used as activation function in the hidden layers. 
+
+        Args:
+            x (float): value to pass through the function. 
+
+        Returns:
+            float: f(x)
+        """
+        return max(0, x)
+    
+    def _relu_derivative(self, x: float) -> float:
+        """
+        Derivative of ReLU for backward propagation. 
+
+        Args:
+            x (float): value to pass through the function. 
+
+        Returns:
+            float: f"(x)
+        """
+        if x > 0:
+            return 1
+        else:
+            return 0
+
+    def _sigmoid(self, x: float) -> float:
+        """
+        Sigmoid function used as activation in the final perceptron layer. 
+
+        Args:
+            x (float): value to pass through the function.
+
+        Returns:
+            float: f(x)
+        """
+        return 1/(1+np.exp(-x))
+
+    def _sigmoid_derivative(self, x: float) -> float:
+        """
+        Derivative of ReLU for backward propagation. 
+
+        Args:
+            x (float): value to pass through the function.
+
+        Returns:
+            float: f"(x)
+        """
+        return self._sigmoid(x)*(1 - self._sigmoid(x))
+    
+    def _step_function(self, x: float) -> int:
+        """
+        step function with a threshold at 0.5.
+        Used for the final classification by the perceptron. 
+
+        Args:
+            x (float): value to pass through the function.
+
+        Returns:
+            int: f(x)
+        """
+        if x > 0.5:
+            return 1
+        else:
+            return 0
+
+    def fit(self, x_train: np.array, y_train: np.array) -> list[float]:
+        """
+        Method for training the model. 
+
+        Args:
+            x_train (np.array): array of input vectors.
+            y_train (np.array): array of labels.
+
+        Returns:
+            list[float]: mean squared error per epoch. 
+        """
+        x_dim = x_train.shape[1]
+        out_dim = 1 # hard coded single perceptron as the final layer
+        layers = self.hidden_layers
+        layers.insert(0, x_dim)
+        layers.append(out_dim)
+        weights = []
+        biases = []
+
+        # init weight matrices
+        for index, layer in enumerate(layers):
+            try:
+                weights.append(np.random.random((layers[index+1], layer)))
+            except IndexError:
+                pass # the last layer does not have weights after it so we pass
+        # init biases
+        for weight in weights:
+            biases.append(np.random.random((len(weight),1)))
+
+        # add initial matrices to history
+        self.weights_history.append(weights.copy())
+        self.biases_history.append(biases.copy())
+
+        mean_squared_error = []
+        for epoch in range(self.epochs):
+            squared_error = []
+            # train weights
+            for y_index, x in enumerate(x_train):
+
+                # feed forward
+                # first output uses the input x
+                outputs = []
+                outputs.append(weights[0] @ x.reshape(1, len(x)).T + biases[0])
+                # hidden layers uses the output of the previous layer
+                for index, weight in enumerate(weights[1:]):
+                    previous_activated = np.vectorize(self._relu)(outputs[index])
+                    outputs.append(weight @ previous_activated + biases[index + 1])
+                # final output is a regular perceptron and uses a different activation function
+                last_output_sigmoid = np.vectorize(self._sigmoid)(outputs[-1])
+                y_predicted = last_output_sigmoid[0][0]
+
+                # backwards propagation for finding the gradients
+                deltas = []
+                # delta at the last position is the perceptron and uses a different activation function
+                delta = (last_output_sigmoid - y_train[y_index]) * self._sigmoid_derivative(last_output_sigmoid)
+                deltas.append(delta)
+                for index in np.arange(-1,-(len(weights)),-1):
+                    delta = (deltas[(-index-1)] @ weights[index]) * (np.vectorize(self._relu_derivative)(outputs[index-1])).T
+                    deltas.append(delta)
+                
+                # gradient descent to update the weights
+                for index, delta in enumerate(deltas):
+                    reverse_index = -index-1
+                    try:
+                        weights[reverse_index] = weights[reverse_index] - self.learning_rate*np.kron(delta.T,outputs[reverse_index-1].T)
+                        biases[reverse_index] = biases[reverse_index] - self.learning_rate*delta.T
+                    except IndexError: # the final update uses the original output from x
+                        weights[reverse_index] = weights[reverse_index] - self.learning_rate*np.kron(delta.T,x.reshape(1, len(x)))
+                        biases[reverse_index] = biases[reverse_index] - self.learning_rate*delta.T
+                
+                # squared error
+                squared_error.append((y_predicted-y_train[y_index])**2)
+            mean_squared_error.append(float(sum(squared_error)/len(squared_error)))
+            # add trained weights to history
+            if epoch % 20 == 0:
+                self.weights_history.append(weights.copy())
+                self.biases_history.append(biases.copy())
+        
+        # add final model to history
+        self.weights_history.append(weights.copy())
+        self.biases_history.append(biases.copy())
+        
+        return mean_squared_error
+    
+    def predict(self, x: np.array, index: int = -1) -> list[int]:
+        """
+        Predict method. 
+
+        Args:
+            x (np.array): input data with shape (n, 2).
+            index (int, optional): Which set of weights to use from history. Defaults to -1.
+
+        Returns:
+            list[int]: a list of predictions.
+        """
+        weights = self.weights_history[index]
+        biases = self.biases_history[index]
+        # feed forward
+        try:
+            output = weights[0] @ x.T + biases[0]
+        except ValueError: # if we only want prediction of a single point. broken for some reason
+            output = weights[0] @ x.reshape(1, len(x)).T + biases[0]
+        for index, weight in enumerate(weights[1:]):
+            output = np.vectorize(self._relu)(output)
+            output = weight @ output + biases[index + 1]
+        output = np.vectorize(self._sigmoid)(output)
+        # take the result through a step function to get exactly 0 or 1
+        output = np.vectorize(self._step_function)(output)
+        return output[0]

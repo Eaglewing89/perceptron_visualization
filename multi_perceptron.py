@@ -7,12 +7,13 @@ import plotly.graph_objects as go
 
 dataset = PointCollection()
 dataset.add_ellipse_collection(20, label=1)
-dataset.change_collection_location(0, -2.5, 1)
+dataset.change_collection_location(0, -1.5, 0)
 dataset.add_ellipse_collection(20, label=1)
-dataset.change_collection_location(1, 2.5, 1)
+dataset.change_collection_location(1, 1.5, 0)
 dataset.add_ellipse_collection(20, label=-1)
-dataset.add_ellipse_collection(10, label=-1)
-dataset.change_collection_location(3, 0, -2)
+dataset.change_collection_location(2, 0, 1.5)
+dataset.add_ellipse_collection(20, label=-1)
+dataset.change_collection_location(3, 0, -1.5)
 
 
 df = pd.DataFrame(dataset.build_dataframe(), columns=["x", "y", "label"])
@@ -33,16 +34,38 @@ class MultiLayerPerceptron():
     for the purpose of giving the option to predict based on previous weights. 
     """
     def __init__(self, learning_rate: float, epochs: int, hidden_layers: list[int]) -> None:
+        """
+        Init method
+
+        Args:
+            learning_rate (float): eta - how strong are each update. Recommend around 0.01 or less.
+            epochs (int): how many times to loop through all points during training. 
+            hidden_layers (list[int]): structure of hidden layers. Each element is nr of nodes. 
+
+        Raises:
+            ValueError: raised if you do not follow type hints. 
+        """
         self.weights_history = []
         self.biases_history = []
-        self.learning_rate = learning_rate
-        self.epochs = epochs
-        self.hidden_layers = hidden_layers
+        try:
+            self.learning_rate = float(learning_rate)
+            self.epochs = int(epochs)
+            for layer in hidden_layers:
+                layer = int(layer)
+            self.hidden_layers = list(hidden_layers)
+        except ValueError as err:
+            raise ValueError from err
 
     def get_history_length(self) -> int:
+        """
+        Get the number of weights stored in history.
+
+        Returns:
+            int: number of weights total.
+        """
         return len(self.weights_history)
 
-    def relu(self, x: float) -> float:
+    def _relu(self, x: float) -> float:
         """
         Rectified Linear Unit.
         Used as activation function in the hidden layers. 
@@ -55,7 +78,7 @@ class MultiLayerPerceptron():
         """
         return max(0, x)
     
-    def relu_derivative(self, x: float) -> float:
+    def _relu_derivative(self, x: float) -> float:
         """
         Derivative of ReLU for backward propagation. 
 
@@ -70,7 +93,7 @@ class MultiLayerPerceptron():
         else:
             return 0
 
-    def sigmoid(self, x: float) -> float:
+    def _sigmoid(self, x: float) -> float:
         """
         Sigmoid function used as activation in the final perceptron layer. 
 
@@ -82,7 +105,7 @@ class MultiLayerPerceptron():
         """
         return 1/(1+np.exp(-x))
 
-    def sigmoid_derivative(self, x: float) -> float:
+    def _sigmoid_derivative(self, x: float) -> float:
         """
         Derivative of ReLU for backward propagation. 
 
@@ -92,9 +115,9 @@ class MultiLayerPerceptron():
         Returns:
             float: f"(x)
         """
-        return self.sigmoid(x)*(1 - self.sigmoid(x))
+        return self._sigmoid(x)*(1 - self._sigmoid(x))
     
-    def step_function(self, x: float) -> int:
+    def _step_function(self, x: float) -> int:
         """
         step function with a threshold at 0.5.
         Used for the final classification by the perceptron. 
@@ -155,19 +178,19 @@ class MultiLayerPerceptron():
                 outputs.append(weights[0] @ x.reshape(1, len(x)).T + biases[0])
                 # hidden layers uses the output of the previous layer
                 for index, weight in enumerate(weights[1:]):
-                    previous_activated = np.vectorize(self.relu)(outputs[index])
+                    previous_activated = np.vectorize(self._relu)(outputs[index])
                     outputs.append(weight @ previous_activated + biases[index + 1])
                 # final output is a regular perceptron and uses a different activation function
-                last_output_sigmoid = np.vectorize(self.sigmoid)(outputs[-1])
+                last_output_sigmoid = np.vectorize(self._sigmoid)(outputs[-1])
                 y_predicted = last_output_sigmoid[0][0]
 
                 # backwards propagation for finding the gradients
                 deltas = []
                 # delta at the last position is the perceptron and uses a different activation function
-                delta = (last_output_sigmoid - y_train[y_index]) * self.sigmoid_derivative(last_output_sigmoid)
+                delta = (last_output_sigmoid - y_train[y_index]) * self._sigmoid_derivative(last_output_sigmoid)
                 deltas.append(delta)
                 for index in np.arange(-1,-(len(weights)),-1):
-                    delta = (deltas[(-index-1)] @ weights[index]) * (np.vectorize(self.relu_derivative)(outputs[index-1])).T
+                    delta = (deltas[(-index-1)] @ weights[index]) * (np.vectorize(self._relu_derivative)(outputs[index-1])).T
                     deltas.append(delta)
                 
                 # gradient descent to update the weights
@@ -195,25 +218,34 @@ class MultiLayerPerceptron():
         return mean_squared_error
     
     def predict(self, x: np.array, index: int = -1) -> list[int]:
+        """
+        Predict method. 
+
+        Args:
+            x (np.array): input data with shape (n, 2).
+            index (int, optional): Which set of weights to use from history. Defaults to -1.
+
+        Returns:
+            list[int]: a list of predictions.
+        """
         weights = self.weights_history[index]
         biases = self.biases_history[index]
-
+        # feed forward
         try:
             output = weights[0] @ x.T + biases[0]
         except ValueError: # if we only want prediction of a single point. broken for some reason
             output = weights[0] @ x.reshape(1, len(x)).T + biases[0]
-        
         for index, weight in enumerate(weights[1:]):
-            output = np.vectorize(self.relu)(output)
+            output = np.vectorize(self._relu)(output)
             output = weight @ output + biases[index + 1]
-
-        output = np.vectorize(self.sigmoid)(output)
-        output = np.vectorize(self.step_function)(output)
+        output = np.vectorize(self._sigmoid)(output)
+        # take the result through a step function to get exactly 0 or 1
+        output = np.vectorize(self._step_function)(output)
         return output[0]
 
-def create_figure_mlp(model: MultiLayerPerceptron, features: np.array, labels: np.array, resolution: int=100, index: int=-1) -> go.Figure:
+def create_figure_mlp(model: MultiLayerPerceptron, features: np.array, resolution: int=100, index: int=-1) -> go.Figure:
     """
-    Plot the decision boundary of a mlp neural network.
+    Plot the decision boundary of a mlp neural network. 2d inputs.
 
     Args:
         model (MultiLayerPerceptron): Trained mlp model.
@@ -255,7 +287,9 @@ def create_figure_mlp(model: MultiLayerPerceptron, features: np.array, labels: n
 
     return fig
 
-mlp = MultiLayerPerceptron(learning_rate=0.002, epochs=1000, hidden_layers=[10])
+epochs = 2000
+
+mlp = MultiLayerPerceptron(learning_rate=0.002, epochs=epochs, hidden_layers=[60,3,3])
 
 mse = mlp.fit(x_train, y_train)
 
@@ -316,9 +350,11 @@ fig.update_yaxes(
 
 
 length = mlp.get_history_length()
+iterations = [i*20 for i in range(length-1)]
+iterations.append(epochs+1)
 
 # Create and add frames
-frames = [go.Frame(data=create_figure_mlp(model=mlp, features=x_train, labels=y_train, index=i).data, name=str(i))
+frames = [go.Frame(data=create_figure_mlp(model=mlp, features=x_train, index=i).data, name=str(i))
           for i in range(length)]
 fig.frames = frames
 
@@ -345,7 +381,7 @@ fig.update_layout(
                     method="animate",
                     args=[[str(i)], {"frame": {"duration": 100,
                                                "redraw": True}, "mode": "immediate"}],
-                    label=str(i)
+                    label=str(iterations[i])
                 )
                 for i in range(length)
             ],
@@ -361,3 +397,4 @@ fig.update_layout(
 
 
 fig.show()
+

@@ -77,3 +77,47 @@ def create_figure(weights: np.array, x_train: pd.DataFrame, df: pd.DataFrame):
                              line=dict(color="#401266", width=2)))
 
     return fig
+
+
+def create_figure_mlp(model: MultiLayerPerceptron, features: np.array, resolution: int=100, index: int=-1) -> go.Figure:
+    """
+    Plot the decision boundary of a mlp neural network. 2d inputs.
+
+    Args:
+        model (MultiLayerPerceptron): Trained mlp model.
+        features (np.array): feature of shape (n, 2).
+        resolution (int, optional): number of points in each linspace. Defaults to 100.
+        index (int, optional): which set of weights to use for prediction. -1 is the latest. Defaults to -1.
+
+    Returns:
+        go.Figure: plot figure.
+    """
+    # Create mesh grid
+    x_min, x_max = features[:, 0].min() - 1.5, features[:, 0].max() + 1.5
+    y_min, y_max = features[:, 1].min() - 1.5, features[:, 1].max() + 1.5
+    xx, yy = np.meshgrid(np.linspace(x_min, x_max, resolution),
+                        np.linspace(y_min, y_max, resolution))
+
+    # Get predictions for all mesh grid points
+    pred = model.predict(np.c_[xx.ravel(), yy.ravel()], index=index)
+    pred = pred.reshape(xx.shape)
+
+    # Create the contour plot for decision boundary
+    fig = go.Figure()
+
+    # Add contour plot
+    fig.add_trace(go.Contour(
+        x=np.linspace(x_min, x_max, resolution),
+        y=np.linspace(y_min, y_max, resolution),
+        z=pred,
+        colorscale="RdBu",
+        opacity=0.3,
+        showscale=False,
+        contours=dict(
+            start=0,
+            end=1,
+            size=0.5
+        )
+    ))
+
+    return fig
