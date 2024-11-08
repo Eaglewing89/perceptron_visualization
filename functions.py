@@ -33,7 +33,7 @@ def create_figure(weights: np.array, x_train: pd.DataFrame, df: pd.DataFrame):
     y_boundary = -(weights[1] * x_range + weights[0]) / weights[2]
 
     # Create a color scheme that matches Plotly Express default colors
-    color_discrete_map = {-1: 'rgb(31, 119, 180)', 1: 'rgb(255, 127, 14)'}
+    color_discrete_map = {-1: "rgb(31, 119, 180)", 1: "rgb(255, 127, 14)"}
 
     # Create the base plot with colored half-spaces
     fig = go.Figure()
@@ -43,38 +43,38 @@ def create_figure(weights: np.array, x_train: pd.DataFrame, df: pd.DataFrame):
         x=[x_range[0], x_range[-1], x_range[-1], x_range[0]],
         y=[y_boundary[0], y_boundary[-1],
             np.max(y_boundary) + 10, np.max(y_boundary) + 10],
-        fill='toself',
-        #fillcolor='rgba(0,0,255,0.1)',
-        fillcolor=f'rgba{color_discrete_map[1][3:-1]}, 0.1)',  # Class 1 color with 0.1 opacity
-        line=dict(color='rgba(0,0,0,0)'),  # Transparent line,
+        fill="toself",
+        #fillcolor="rgba(0,0,255,0.1)",
+        fillcolor=f"rgba{color_discrete_map[1][3:-1]}, 0.1)",  # Class 1 color with 0.1 opacity
+        line=dict(color="rgba(0,0,0,0)"),  # Transparent line,
         showlegend=False,
-        hoverinfo='skip'
+        hoverinfo="skip"
     ))
 
     fig.add_trace(go.Scatter(
         x=[x_range[0], x_range[-1], x_range[-1], x_range[0]],
         y=[y_boundary[0], y_boundary[-1],
             np.min(y_boundary) - 10, np.min(y_boundary) - 10],
-        fill='toself',
-        #fillcolor='rgba(255,0,0,0.1)',
-        fillcolor=f'rgba{color_discrete_map[-1][3:-1]}, 0.1)',  # Class 0 color with 0.1 opacity
-        line=dict(color='rgba(0,0,0,0)'),  # Transparent line,
+        fill="toself",
+        #fillcolor="rgba(255,0,0,0.1)",
+        fillcolor=f"rgba{color_discrete_map[-1][3:-1]}, 0.1)",  # Class 0 color with 0.1 opacity
+        line=dict(color="rgba(0,0,0,0)"),  # Transparent line,
         showlegend=False,
-        hoverinfo='skip'
+        hoverinfo="skip"
     ))
 
     for class_value in [-1, 1]:
         mask = df["label"] == class_value
         fig.add_trace(go.Scatter(
-            x=df[mask]['x'],
-            y=df[mask]['y'],
-            mode='markers',
-            marker=dict(color='red' if class_value == -1 else 'blue'),
-            name=f'Class {class_value}'
+            x=df[mask]["x"],
+            y=df[mask]["y"],
+            mode="markers",
+            marker=dict(color="red" if class_value == -1 else "blue"),
+            name=f"Class {class_value}"
         ))
 
     # Add the decision boundary line
-    fig.add_trace(go.Scatter(x=x_range, y=y_boundary, mode='lines', name='Boundary      ',
+    fig.add_trace(go.Scatter(x=x_range, y=y_boundary, mode="lines", name="Boundary      ",
                              line=dict(color="#401266", width=2)))
 
     return fig
@@ -106,7 +106,7 @@ def create_figure_mlp(model: MultiLayerPerceptron, features: np.array, resolutio
     # Create the contour plot for decision boundary
     fig = go.Figure()
 
-    colorscale = [[0, 'rgb(255, 127, 14)'], [1, 'rgb(31, 119, 180)']]
+    colorscale = [[0, "rgb(255, 127, 14)"], [1, "rgb(31, 119, 180)"]]
 
     # Add contour plot
     fig.add_trace(go.Contour(
@@ -132,13 +132,13 @@ def create_figure_mlp(model: MultiLayerPerceptron, features: np.array, resolutio
                 boundary_x.append(xx[i, j])
                 boundary_y.append(yy[i, j])
 
-    # Add boundary line as a purple scatter plot
-    fig.add_trace(go.Scatter(
-        x=boundary_x,
-        y=boundary_y,
-        mode='markers',
-        marker=dict(color="purple", size=2),
-        name="Decision Boundary"
-    ))
+    # # Add boundary line as a purple scatter plot
+    # fig.add_trace(go.Scatter(
+    #     x=boundary_x,
+    #     y=boundary_y,
+    #     mode="markers",
+    #     marker=dict(color="purple", size=2),
+    #     name="Decision Boundary"
+    # ))
 
     return fig

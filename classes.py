@@ -383,7 +383,7 @@ class MultiLayerPerceptron():
     This one is designed to save the weight history at given intervals during the training process 
     for the purpose of giving the option to predict based on previous weights. 
     """
-    def __init__(self, learning_rate: float, epochs: int, hidden_layers: list[int]) -> None:
+    def __init__(self, learning_rate: float, epochs: int, hidden_layers: list[int], save_interval: int = 100) -> None:
         """
         Init method
 
@@ -391,6 +391,7 @@ class MultiLayerPerceptron():
             learning_rate (float): eta - how strong are each update. Recommend around 0.01 or less.
             epochs (int): how many times to loop through all points during training. 
             hidden_layers (list[int]): structure of hidden layers. Each element is nr of nodes. 
+            save_interval (int): after how many epoch we store the weights. Defaults to 100.
 
         Raises:
             ValueError: raised if you do not follow type hints. 
@@ -398,6 +399,7 @@ class MultiLayerPerceptron():
         self.weights_history = []
         self.biases_history = []
         try:
+            self.save_interval = int(save_interval)
             self.learning_rate = float(learning_rate)
             self.epochs = int(epochs)
             for layer in hidden_layers:
@@ -414,74 +416,78 @@ class MultiLayerPerceptron():
             int: number of weights total.
         """
         return len(self.weights_history)
+    
+    def get_save_interval(self) -> int:
+        """
+        Get the number for save intervals.
 
-    def _relu(self, x: float) -> float:
+        Returns:
+            int: save interval number.
+        """
+        return self.save_interval
+
+    def _relu(self, x: np.array) -> np.array:
         """
         Rectified Linear Unit.
         Used as activation function in the hidden layers. 
 
         Args:
-            x (float): value to pass through the function. 
+            x (np.array): Array of values to pass through the function. 
 
         Returns:
-            float: f(x)
+            np.array: f(x) applied element-wise.
         """
-        return max(0, x)
-    
-    def _relu_derivative(self, x: float) -> float:
+        return np.maximum(0, x)
+
+    def _relu_derivative(self, x: np.array) -> np.array:
         """
         Derivative of ReLU for backward propagation. 
 
         Args:
-            x (float): value to pass through the function. 
+            x (np.array): Array of values to pass through the function. 
 
         Returns:
-            float: f"(x)
+            np.array: f'(x) applied element-wise.
         """
-        if x > 0:
-            return 1
-        else:
-            return 0
+        return np.where(x > 0, 1, 0)
 
-    def _sigmoid(self, x: float) -> float:
+    def _sigmoid(self, x: np.array) -> np.array:
         """
         Sigmoid function used as activation in the final perceptron layer. 
 
         Args:
-            x (float): value to pass through the function.
+            x (np.array): Array of values to pass through the function.
 
         Returns:
-            float: f(x)
+            np.array: f(x) applied element-wise.
         """
-        return 1/(1+np.exp(-x))
+        return 1 / (1 + np.exp(-x))
 
-    def _sigmoid_derivative(self, x: float) -> float:
+    def _sigmoid_derivative(self, x: np.array) -> np.array:
         """
-        Derivative of ReLU for backward propagation. 
+        Derivative of sigmoid for backward propagation. 
 
         Args:
-            x (float): value to pass through the function.
+            x (np.array): Array of values to pass through the function.
 
         Returns:
-            float: f"(x)
+            np.array: f'(x) applied element-wise.
         """
-        return self._sigmoid(x)*(1 - self._sigmoid(x))
-    
-    def _step_function(self, x: float) -> int:
+        sigmoid_x = self._sigmoid(x)
+        return sigmoid_x * (1 - sigmoid_x)
+
+    def _step_function(self, x: np.array) -> np.array:
         """
-        step function with a threshold at 0.5.
-        Used for the final classification by the perceptron. 
+        Step function with a threshold at 0.5.
+        Used for final classification by the perceptron in batched predictions.
 
         Args:
-            x (float): value to pass through the function.
+            x (np.array): Array of values to pass through the function.
 
         Returns:
-            int: f(x)
+            np.array: Array with 1s where f(x) > 0.5 and 0s otherwise.
         """
-        if x > 0.5:
-            return 1
-        else:
-            return 0
+        return np.where(x > 0.5, 1, 0)
 
     def fit(self, x_train: np.array, y_train: np.array) -> list[float]:
         """
@@ -528,10 +534,10 @@ class MultiLayerPerceptron():
                 outputs.append(weights[0] @ x.reshape(1, len(x)).T + biases[0])
                 # hidden layers uses the output of the previous layer
                 for index, weight in enumerate(weights[1:]):
-                    previous_activated = np.vectorize(self._relu)(outputs[index])
+                    previous_activated = self._relu(outputs[index])
                     outputs.append(weight @ previous_activated + biases[index + 1])
                 # final output is a regular perceptron and uses a different activation function
-                last_output_sigmoid = np.vectorize(self._sigmoid)(outputs[-1])
+                last_output_sigmoid = self._sigmoid(outputs[-1])
                 y_predicted = last_output_sigmoid[0][0]
 
                 # backwards propagation for finding the gradients
@@ -540,7 +546,7 @@ class MultiLayerPerceptron():
                 delta = (last_output_sigmoid - y_train[y_index]) * self._sigmoid_derivative(last_output_sigmoid)
                 deltas.append(delta)
                 for index in np.arange(-1,-(len(weights)),-1):
-                    delta = (deltas[(-index-1)] @ weights[index]) * (np.vectorize(self._relu_derivative)(outputs[index-1])).T
+                    delta = (deltas[(-index-1)] @ weights[index]) * (self._relu_derivative(outputs[index-1])).T
                     deltas.append(delta)
                 
                 # gradient descent to update the weights
@@ -557,7 +563,7 @@ class MultiLayerPerceptron():
                 squared_error.append((y_predicted-y_train[y_index])**2)
             mean_squared_error.append(float(sum(squared_error)/len(squared_error)))
             # add trained weights to history
-            if epoch % 20 == 0:
+            if epoch % self.save_interval == 0:
                 self.weights_history.append(weights.copy())
                 self.biases_history.append(biases.copy())
         
@@ -586,9 +592,9 @@ class MultiLayerPerceptron():
         except ValueError: # if we only want prediction of a single point. broken for some reason
             output = weights[0] @ x.reshape(1, len(x)).T + biases[0]
         for index, weight in enumerate(weights[1:]):
-            output = np.vectorize(self._relu)(output)
+            output = self._relu(output)
             output = weight @ output + biases[index + 1]
-        output = np.vectorize(self._sigmoid)(output)
+        output = self._sigmoid(output)
         # take the result through a step function to get exactly 0 or 1
-        output = np.vectorize(self._step_function)(output)
+        output = self._step_function(output)
         return output[0]

@@ -7,12 +7,13 @@ from classes import PointCollection, Perceptron, MultiLayerPerceptron
 from functions import create_figure, create_figure_mlp
 
 st.set_page_config(
-    page_title="Perceptron Visualization", page_icon="🔢"
+    page_title="Perceptron Visualization"
 )
+
 
 st.title("Perceptron Visualisation")
 st.write(
-    "Generate a dataset and see how a single layer perceptron manages to seperate the two classes."
+    "Generate a dataset and observe how a single- or multi-layer perceptron seperates the two classes."
 )
 
 container_style = ["""
@@ -562,10 +563,23 @@ if st.session_state.stage == 2:
                                     padding-left: 0.1rem
                                 }
                                 """]):
-            st.write("A 'somewhat' simplified explanation:")
-            st.write("The Perceptron algorithm uses a weight vector to create a decision boundary shown in purple above. It will then go through each point in the training set and take the inner product of the weight vector and the point. The result of this will be a positive value if the point lies above the decision boundary and negative otherwise. In our case, positive or negative is a prediction of what class it belongs to. This is then compared with the actual class value of our training set (either -1 or 1). If it is not the same the point is considered misclassified and we update our weights in the direction where it would have been correctly classified. We do this operation for every point in the training set, and in our case we go through the entire set 40 times")
+            st.write("The single-layer perceptron model")
+            st.write("A single-layer perceptron is a simple type of artificial neuron used for binary classification, which means it can separate data into two categories. It takes several input values, each with an assigned weight (indicating importance), combines them, and outputs a classification.")
+            st.write("Here's how it works:")
+            st.markdown("- Weighted Sum: The perceptron calculates a weighted sum of the input values. Each input is multiplied by its weight, and these products are added together.")
+            st.markdown("- Decision Boundary: The weights define a decision boundary, which is essentially a line (or hyperplane in higher dimensions) that separates the two classes. Points on one side of the boundary belong to one class, while points on the other side belong to the other class.")
+            st.markdown("- Activation (Threshold): This weighted sum is passed through an activation function, typically a threshold function. If the sum is above the threshold, the perceptron outputs one class (e.g., '1'); if it's below, it outputs the other class (e.g., '0').")
+            st.markdown("- Learning: During training, the perceptron adjusts its weights to improve classification accuracy, which moves the decision boundary to better separate the classes.")
+            st.markdown('''
+            <style>
+            [data-testid="stMarkdownContainer"] ul{
+                list-style-position: inside;
+            }
+            </style>
+            ''', unsafe_allow_html=True)
+            st.write("In short, a single-layer perceptron decides which class an input belongs to by comparing the weighted sum to a threshold, and it uses its weights to define a decision boundary that separates the two classes. However, it can only solve problems that can be separated linearly (by a straight line in 2D or a flat plane in higher dimensions).")
     else:
-        with stylable_container(key="perceptron_explanation",
+        with stylable_container(key="single_set_empty",
                                 css_styles=["""
                                 {
                                     background-color: #262730;
@@ -601,9 +615,9 @@ if st.session_state.stage == 3:
 
         df["label"] = df["label"].astype(str)
 
-        epochs = 100
+        epochs = 101
         learning_rate = 0.002
-        hidden_layers=[10]
+        hidden_layers=[10,3]
 
         st.write("Hello")
 
@@ -632,7 +646,7 @@ if st.session_state.stage == 3:
                 y=df["y"][:1],
                 mode="markers",
                 marker={"color": "blue"},
-                name=""
+                showlegend=False
                 ))
             # add traces for the classes in our dataframe
             for class_value in ["0", "1"]:
@@ -642,7 +656,7 @@ if st.session_state.stage == 3:
                     y=df[mask]["y"],
                     mode="markers",
                     marker=dict(color="red" if class_value == "0" else "blue"),
-                    name=f"Class {class_value}"
+                    name=f"Class {class_value}        "
                 ))
 
             # Calculate the axis ranges
@@ -651,7 +665,7 @@ if st.session_state.stage == 3:
 
             # Update the layout
             fig.update_layout(
-                title="                        Perceptron Decision Boundary",
+                title="                        Neural Network Decision Boundary",
                 xaxis_title="X",
                 yaxis_title="Y",
                 width=800,
@@ -668,7 +682,8 @@ if st.session_state.stage == 3:
             )
 
             length = mlp.get_history_length()
-            iterations = [i*20 for i in range(length-1)]
+            interval = mlp.get_save_interval()
+            iterations = [i*interval for i in range(length-1)]
             iterations.append(epochs+1)
 
             # Create and add frames
@@ -735,8 +750,21 @@ if st.session_state.stage == 3:
                                     padding-left: 0.1rem
                                 }
                                 """]):
-            st.write("A 'somewhat' simplified explanation:")
-            st.write("hoooooooo")
+            st.write("The multi-layer perceptron model")
+            st.write("A multi-layer perceptron (MLP) builds on the single-layer perceptron by adding more layers, making it much more powerful and flexible. While a single-layer perceptron can only classify data that's linearly separable (like a line or flat plane dividing two classes), a multi-layer perceptron can tackle more complex problems with non-linear boundaries.")
+            st.write("Here's how it works:")
+            st.markdown("- Layers of Neurons: An MLP has an input layer, one or more hidden layers, and an output layer. Each layer contains several neurons, and each neuron in a layer is connected to every neuron in the next layer, creating a 'fully connected' network.")
+            st.markdown("- Weighted Sum and Activation (Non-Linear): Each neuron in the MLP computes a weighted sum of its inputs, like in the single-layer perceptron. But here, instead of using a simple threshold, it typically applies a non-linear activation function (like ReLU or sigmoid). This non-linearity allows the MLP to learn complex relationships in the data.")
+            st.markdown("- Learning through Backpropagation: MLPs use a process called backpropagation to learn. When the network makes a mistake, it calculates how much each neuron contributed to the error, then adjusts the weights to reduce the error. This process repeats for many iterations until the network learns to classify data accurately.")
+            st.markdown("- Complex Decision Boundaries: Thanks to the hidden layers and non-linear activations, MLPs can create intricate decision boundaries that separate data in complex ways. Unlike the single-layer perceptron’s straight-line boundary, an MLP can form curved boundaries that better fit real-world data.")
+            st.markdown('''
+            <style>
+            [data-testid="stMarkdownContainer"] ul{
+                list-style-position: inside;
+            }
+            </style>
+            ''', unsafe_allow_html=True)
+            st.write("In summary, while a single-layer perceptron is limited to problems that can be separated by a straight line, a multi-layer perceptron can classify data with complex, non-linear boundaries. It achieves this through multiple layers of neurons and non-linear activation functions, learning to adapt its weights in a process called backpropagation.")
     else:
         with stylable_container(key="multi_set_empty",
                                 css_styles=["""
@@ -759,3 +787,27 @@ if st.session_state.stage == 3:
             st.write("The dataset is currently empty.")
             st.write("To proceed with neural network training you must add at least one point collection to your dataset.")
             st.write("-> Create/edit dataset -> Add new points")
+
+with stylable_container(key="contact_info",
+                        css_styles=["""
+                        {
+                            background-color: #262730;
+                            border-radius: 0.6em;
+                            padding: 0.5em;
+                        }
+                        """,
+                                    """
+                        div {
+                            padding-right: 0.5rem
+                        }
+                        """,
+                                    """
+                        div {
+                            padding-left: 0.1rem
+                        }
+                        """]):
+    st.write("Created by: Robert Örneving")
+    url = "https://www.streamlit.io"
+    st.write("[LinkedIn](%s)" % url)
+    url2 = "https://github.com/Eaglewing89/perceptron_visualization"
+    st.write("[GitHub repository](%s)" % url2)
