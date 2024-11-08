@@ -3,8 +3,8 @@ import numpy as np
 import streamlit as st
 from streamlit_extras.stylable_container import stylable_container
 import plotly.graph_objects as go
-from classes import PointCollection, Perceptron
-from functions import create_figure
+from classes import PointCollection, Perceptron, MultiLayerPerceptron
+from functions import create_figure, create_figure_mlp
 
 st.set_page_config(
     page_title="Perceptron Visualization", page_icon="🔢"
@@ -163,15 +163,19 @@ def pregen_datapoints():
 
 pregen_datapoints()
 
-col_left, col_right = st.columns(2)
+col_left, col_middle, col_right = st.columns(3)
 
 with col_left:
     st.button("Create / Edit Dataset", on_click=set_state,
               args=[1], use_container_width=True)
 
-with col_right:
+with col_middle:
     st.button("Perceptron Training", on_click=set_state,
               args=[2], use_container_width=True)
+    
+with col_right:
+    st.button("Neural Network Training", on_click=set_state,
+              args=[3], use_container_width=True)
 
 st.markdown("""<hr style="height:6px;border:none;color:#262730;background-color:#262730;" /> """,
             unsafe_allow_html=True)
@@ -451,7 +455,7 @@ if st.session_state.stage == 2:
         x_train = np.array(df.drop(columns="label"))
         y_train = np.array(df["label"])
 
-        epochs = 40
+        epochs = 20
 
         w_history = st.session_state.perceptron.fit(
             x_train=x_train, y_train=y_train, epochs=epochs)
@@ -478,15 +482,15 @@ if st.session_state.stage == 2:
 
             # Update the layout
             fig.update_layout(
-                title='                        Perceptron Decision Boundary',
-                xaxis_title='X',
-                yaxis_title='Y',
+                title="                        Perceptron Decision Boundary",
+                xaxis_title="X",
+                yaxis_title="Y",
                 width=800,
                 height=600,
-                xaxis={"range": [x_min, x_max], 'visible': False,
-                    'showticklabels': False, "hoverformat": '.2f'},
-                yaxis={"range": [y_min, y_max], 'visible': False,
-                    'showticklabels': False, "hoverformat": '.2f'},
+                xaxis={"range": [x_min, x_max], "visible": False,
+                    "showticklabels": False, "hoverformat": ".2f"},
+                yaxis={"range": [y_min, y_max], "visible": False,
+                    "showticklabels": False, "hoverformat": ".2f"},
             )
 
             fig.update_yaxes(
@@ -503,15 +507,15 @@ if st.session_state.stage == 2:
             fig.update_layout(
                 updatemenus=[
                     dict(
-                        type='buttons',
+                        type="buttons",
                         showactive=False,
                         buttons=[
-                            dict(label='Play',
-                                method='animate',
-                                args=[None, {'frame': {'duration': 100, 'redraw': True}, 'fromcurrent': True}]),
-                            dict(label='Pause',
-                                method='animate',
-                                args=[[None], {'frame': {'duration': 0, 'redraw': True}, 'mode': 'immediate', 'transition': {'duration': 0}}])
+                            dict(label="Play",
+                                method="animate",
+                                args=[None, {"frame": {"duration": 100, "redraw": True}, "fromcurrent": True}]),
+                            dict(label="Pause",
+                                method="animate",
+                                args=[[None], {"frame": {"duration": 0, "redraw": True}, "mode": "immediate", "transition": {"duration": 0}}])
                         ]
                     )
                 ],
@@ -519,18 +523,18 @@ if st.session_state.stage == 2:
                     dict(
                         steps=[
                             dict(
-                                method='animate',
-                                args=[[str(i)], {'frame': {'duration': 100,
-                                                        'redraw': True}, 'mode': 'immediate'}],
+                                method="animate",
+                                args=[[str(i)], {"frame": {"duration": 100,
+                                                        "redraw": True}, "mode": "immediate"}],
                                 label=str(i+1)
                             )
                             for i in range(epochs)
                         ],
-                        transition={'duration': 0},
+                        transition={"duration": 0},
                         x=0,
                         y=0,
-                        currentvalue={'font': {'size': 12}, 'prefix': 'Iteration: ',
-                                    'visible': True, 'xanchor': 'center'},
+                        currentvalue={"font": {"size": 12}, "prefix": "Iteration: ",
+                                    "visible": True, "xanchor": "center"},
                         len=0.9,
                     )
                 ]
@@ -581,4 +585,177 @@ if st.session_state.stage == 2:
                                 """]):
             st.write("The dataset is currently empty.")
             st.write("To proceed with perceptron training you must add at least one point collection to your dataset.")
+            st.write("-> Create/edit dataset -> Add new points")
+
+
+if st.session_state.stage == 3:
+    total_collections = st.session_state.dataset.number_of_collections()
+    if total_collections > 0:
+        df = st.session_state.dataset.build_dataframe()
+
+        # class -1 to 0 because it was the better choice for mlp due to ReLU and sigmoid functions.
+        df["label"] = df["label"].apply(lambda x: 0 if x == -1 else x)
+
+        x_train = np.array(df.drop(columns="label"))
+        y_train = np.array(df["label"])
+
+        df["label"] = df["label"].astype(str)
+
+        epochs = 100
+        learning_rate = 0.002
+        hidden_layers=[10]
+
+        st.write("Hello")
+
+        mlp = MultiLayerPerceptron(learning_rate=learning_rate, epochs=epochs, hidden_layers=hidden_layers)
+        mse = mlp.fit(x_train, y_train)
+        pred = mlp.predict(x_train)
+        #print(np.sum(np.abs(y_train-pred)))
+
+        with stylable_container(key="multi_perceptron_visual",
+                                css_styles=["""
+                                .main-svg:nth-of-type(1) {
+                                    border-radius: 0.6em;
+                                    border-style: solid;
+                                    border-width: 1px;
+                                    border-color: #41444C;
+                                }""",
+                                            """
+                                .main-svg:nth-of-type(2) {
+                                    padding: 0.6em;
+                                }"""]):
+            # Create the base figure
+            fig = go.Figure()
+            # dummy trace. Added because of a bug in plotly frames which removes the first trace.
+            fig.add_trace(go.Scatter(
+                x=df["x"][:1],
+                y=df["y"][:1],
+                mode="markers",
+                marker={"color": "blue"},
+                name=""
+                ))
+            # add traces for the classes in our dataframe
+            for class_value in ["0", "1"]:
+                mask = df["label"] == class_value
+                fig.add_trace(go.Scatter(
+                    x=df[mask]["x"],
+                    y=df[mask]["y"],
+                    mode="markers",
+                    marker=dict(color="red" if class_value == "0" else "blue"),
+                    name=f"Class {class_value}"
+                ))
+
+            # Calculate the axis ranges
+            x_min, x_max = x_train[:, 0].min() - 0.5, x_train[:, 0].max() + 0.5
+            y_min, y_max = x_train[:, 1].min() - 0.5, x_train[:, 1].max() + 0.5
+
+            # Update the layout
+            fig.update_layout(
+                title="                        Perceptron Decision Boundary",
+                xaxis_title="X",
+                yaxis_title="Y",
+                width=800,
+                height=600,
+                xaxis={"range": [x_min, x_max], "visible": False,
+                    "showticklabels": False, "hoverformat": ".2f"},
+                yaxis={"range": [y_min, y_max], "visible": False,
+                    "showticklabels": False, "hoverformat": ".2f"},
+            )
+
+            fig.update_yaxes(
+                scaleanchor="x",
+                scaleratio=1,
+            )
+
+            length = mlp.get_history_length()
+            iterations = [i*20 for i in range(length-1)]
+            iterations.append(epochs+1)
+
+            # Create and add frames
+            frames = [go.Frame(data=create_figure_mlp(model=mlp, features=x_train, index=i).data, name=str(i))
+                    for i in range(length)]
+            fig.frames = frames
+
+            # Add slider and play button
+            fig.update_layout(
+                updatemenus=[
+                    dict(
+                        type="buttons",
+                        showactive=False,
+                        buttons=[
+                            dict(label="Play",
+                                method="animate",
+                                args=[None, {"frame": {"duration": 100, "redraw": True}, "fromcurrent": True}]),
+                            dict(label="Pause",
+                                method="animate",
+                                args=[[None], {"frame": {"duration": 0, "redraw": True}, "mode": "immediate", "transition": {"duration": 0}}])
+                        ]
+                    )
+                ],
+                sliders=[
+                    dict(
+                        steps=[
+                            dict(
+                                method="animate",
+                                args=[[str(i)], {"frame": {"duration": 100,
+                                                        "redraw": True}, "mode": "immediate"}],
+                                label=str(iterations[i])
+                            )
+                            for i in range(length)
+                        ],
+                        transition={"duration": 0},
+                        x=0,
+                        y=0,
+                        currentvalue={"font": {"size": 12}, "prefix": "Iteration: ",
+                                    "visible": True, "xanchor": "center"},
+                        len=0.9,
+                    )
+                ]
+            )
+            fig.update_layout(paper_bgcolor="#131720")
+            fig.update_layout(plot_bgcolor="#131720")
+            st.plotly_chart(fig)
+            st.write("")
+
+        with stylable_container(key="multi_perceptron_explanation",
+                                css_styles=["""
+                                {
+                                    background-color: #262730;
+                                    border-radius: 0.6em;
+                                    padding: 0.5em;
+                                }
+                                """,
+                                            """
+                                div {
+                                    padding-right: 0.5rem
+                                }
+                                """,
+                                            """
+                                div {
+                                    padding-left: 0.1rem
+                                }
+                                """]):
+            st.write("A 'somewhat' simplified explanation:")
+            st.write("hoooooooo")
+    else:
+        with stylable_container(key="multi_set_empty",
+                                css_styles=["""
+                                {
+                                    background-color: #262730;
+                                    border-radius: 0.6em;
+                                    padding: 0.5em;
+                                }
+                                """,
+                                            """
+                                div {
+                                    padding-right: 0.5rem
+                                }
+                                """,
+                                            """
+                                div {
+                                    padding-left: 0.1rem
+                                }
+                                """]):
+            st.write("The dataset is currently empty.")
+            st.write("To proceed with neural network training you must add at least one point collection to your dataset.")
             st.write("-> Create/edit dataset -> Add new points")

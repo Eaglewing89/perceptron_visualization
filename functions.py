@@ -7,6 +7,7 @@ from random import uniform
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
+from classes import MultiLayerPerceptron
 
 
 
@@ -105,19 +106,39 @@ def create_figure_mlp(model: MultiLayerPerceptron, features: np.array, resolutio
     # Create the contour plot for decision boundary
     fig = go.Figure()
 
+    colorscale = [[0, 'rgb(255, 127, 14)'], [1, 'rgb(31, 119, 180)']]
+
     # Add contour plot
     fig.add_trace(go.Contour(
         x=np.linspace(x_min, x_max, resolution),
         y=np.linspace(y_min, y_max, resolution),
         z=pred,
-        colorscale="RdBu",
-        opacity=0.3,
+        colorscale=colorscale,
+        opacity=0.10,
         showscale=False,
         contours=dict(
             start=0,
             end=1,
             size=0.5
         )
+    ))
+
+    # Identify boundary points
+    boundary_x, boundary_y = [], []
+    for i in range(pred.shape[0] - 1):
+        for j in range(pred.shape[1] - 1):
+            # Check if neighboring points differ, indicating a boundary
+            if pred[i, j] != pred[i + 1, j] or pred[i, j] != pred[i, j + 1]:
+                boundary_x.append(xx[i, j])
+                boundary_y.append(yy[i, j])
+
+    # Add boundary line as a purple scatter plot
+    fig.add_trace(go.Scatter(
+        x=boundary_x,
+        y=boundary_y,
+        mode='markers',
+        marker=dict(color="purple", size=2),
+        name="Decision Boundary"
     ))
 
     return fig
