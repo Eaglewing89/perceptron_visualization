@@ -655,7 +655,7 @@ class NetworkGraph():
         # Base graph
         graph = graphviz.Digraph()
         graph.attr(rankdir="LR",
-                   bgcolor="#262730",
+                   bgcolor="transparent",
                    edge="black",
                    style="filled",
                    size="5,2.3",
@@ -668,7 +668,7 @@ class NetworkGraph():
             for i in range(self.input_nodes):
                 c.node(f"i{i}", input_labels[i],
                        style="filled",
-                       fillcolor="#90EE90",
+                       fillcolor="#2d8be3",
                        shape="circle",
                        fixedsize="true",
                        width="0.4",
@@ -692,16 +692,16 @@ class NetworkGraph():
                     c.node(f"h{layer_idx}_more", self._get_node_label(nodes, self.max_visible_nodes),
                            style="filled",
                            fillcolor="#FAFAFA",
-                           shape="note",
+                           shape="rectangle",
                            fontsize="10")
 
         # Output layer
         with graph.subgraph(name="output") as c:
             c.attr(rank="same")
             for i in range(self.output_nodes):
-                c.node(f"o{i}", "Output",
+                c.node(f"o{i}", "OUT",
                        style="filled",
-                       fillcolor="#FFB6C1",
+                       fillcolor="#ff6b6b",
                        shape="circle",
                        fixedsize="true",
                        width="0.4",

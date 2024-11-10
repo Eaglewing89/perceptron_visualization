@@ -138,7 +138,7 @@ def pregen_datapoints():
     st.session_state.dataset.change_collection_rotation(
         index=0, rotation_angle=0.3*pi)
     st.session_state.dataset.change_collection_location(
-        index=0, position_x=-1.84, position_y=0.98)
+        index=0, position_x=-1.84, position_y=1.30)
     st.session_state.dataset.change_collection_scale(index=0, scale=1.0)
 
     st.session_state.dataset.add_ellipse_collection(
@@ -154,15 +154,15 @@ def pregen_datapoints():
     st.session_state.dataset.change_collection_rotation(
         index=2, rotation_angle=-0.2*pi)
     st.session_state.dataset.change_collection_location(
-        index=2, position_x=-0.22, position_y=1.21)
+        index=2, position_x=-0.22, position_y=1.59)
     st.session_state.dataset.change_collection_scale(index=2, scale=1.0)
 
     st.session_state.dataset.add_ellipse_collection(
         number_of_points=40, a=0.4, b=1, label=-1)
     st.session_state.dataset.change_collection_rotation(
-        index=3, rotation_angle=0.2*pi)
+        index=3, rotation_angle=0.3*pi)
     st.session_state.dataset.change_collection_location(
-        index=3, position_x=-0.40, position_y=0.1)
+        index=3, position_x=-0.25, position_y=0.16)
     st.session_state.dataset.change_collection_scale(index=3, scale=0.66)
 
 
@@ -462,99 +462,107 @@ if st.session_state.stage == 1:
 if st.session_state.stage == 2:
     total_collections = st.session_state.dataset.number_of_collections()
     if total_collections > 0:
-        df = st.session_state.dataset.build_dataframe()
+        col_left, col_right = st.columns(2)
+        with col_left:
+            p_learning_rate = st.number_input("Learning rate", min_value=0.001, max_value=1.0, value=0.01,
+                                               step=0.001, format="%.3f", help="How fast the model updates during training")
+        with col_right:
+            p_epochs = st.number_input("Iterations", min_value=1, max_value=200, value=50,
+                                        help="How many times the model sees all training data", step=10)
+            
+        if st.button("Train model!", use_container_width=True):
+            
+            df = st.session_state.dataset.build_dataframe()
 
-        x_train = np.array(df.drop(columns="label"))
-        y_train = np.array(df["label"])
+            x_train = np.array(df.drop(columns="label"))
+            y_train = np.array(df["label"])
 
-        epochs = 20
+            w_history = st.session_state.perceptron.fit(
+                x_train=x_train, y_train=y_train, epochs=p_epochs, learning_rate=p_learning_rate)
 
-        w_history = st.session_state.perceptron.fit(
-            x_train=x_train, y_train=y_train, epochs=epochs)
+            with stylable_container(key="perceptron_visual",
+                                    css_styles=["""
+                                    .main-svg:nth-of-type(1) {
+                                        border-radius: 0.6em;
+                                        border-style: solid;
+                                        border-width: 1px;
+                                        border-color: #41444C;
+                                    }""",
+                                                """
+                                    .main-svg:nth-of-type(2) {
+                                        padding: 0.6em;
+                                    }"""]):
+                # Create the base figure
+                fig = create_figure(weights=w_history[0],
+                                    x_train=x_train, df=df)
 
-        with stylable_container(key="perceptron_visual",
-                                css_styles=["""
-                                .main-svg:nth-of-type(1) {
-                                    border-radius: 0.6em;
-                                    border-style: solid;
-                                    border-width: 1px;
-                                    border-color: #41444C;
-                                }""",
-                                            """
-                                .main-svg:nth-of-type(2) {
-                                    padding: 0.6em;
-                                }"""]):
-            # Create the base figure
-            fig = create_figure(weights=w_history[0],
-                                x_train=x_train, df=df)
+                # Calculate the axis ranges
+                x_min, x_max = x_train[:, 0].min() - 0.5, x_train[:, 0].max() + 0.5
+                y_min, y_max = x_train[:, 1].min() - 0.5, x_train[:, 1].max() + 0.5
 
-            # Calculate the axis ranges
-            x_min, x_max = x_train[:, 0].min() - 0.5, x_train[:, 0].max() + 0.5
-            y_min, y_max = x_train[:, 1].min() - 0.5, x_train[:, 1].max() + 0.5
+                # Update the layout
+                fig.update_layout(
+                    title="                        Perceptron Decision Boundary",
+                    xaxis_title="X",
+                    yaxis_title="Y",
+                    width=800,
+                    height=600,
+                    xaxis={"range": [x_min, x_max], "visible": False,
+                        "showticklabels": False, "hoverformat": ".2f"},
+                    yaxis={"range": [y_min, y_max], "visible": False,
+                        "showticklabels": False, "hoverformat": ".2f"},
+                )
 
-            # Update the layout
-            fig.update_layout(
-                title="                        Perceptron Decision Boundary",
-                xaxis_title="X",
-                yaxis_title="Y",
-                width=800,
-                height=600,
-                xaxis={"range": [x_min, x_max], "visible": False,
-                       "showticklabels": False, "hoverformat": ".2f"},
-                yaxis={"range": [y_min, y_max], "visible": False,
-                       "showticklabels": False, "hoverformat": ".2f"},
-            )
+                fig.update_yaxes(
+                    scaleanchor="x",
+                    scaleratio=1,
+                )
 
-            fig.update_yaxes(
-                scaleanchor="x",
-                scaleratio=1,
-            )
+                # Create and add frames
+                frames = [go.Frame(data=create_figure(weights=w, x_train=x_train, df=df).data, name=str(i))
+                        for i, w in enumerate(w_history)]
+                fig.frames = frames
 
-            # Create and add frames
-            frames = [go.Frame(data=create_figure(weights=w, x_train=x_train, df=df).data, name=str(i))
-                      for i, w in enumerate(w_history)]
-            fig.frames = frames
-
-            # Add slider and play button
-            fig.update_layout(
-                updatemenus=[
-                    dict(
-                        type="buttons",
-                        showactive=False,
-                        buttons=[
-                            dict(label="Play",
-                                 method="animate",
-                                 args=[None, {"frame": {"duration": 100, "redraw": True}, "fromcurrent": True}]),
-                            dict(label="Pause",
-                                 method="animate",
-                                 args=[[None], {"frame": {"duration": 0, "redraw": True}, "mode": "immediate", "transition": {"duration": 0}}])
-                        ]
-                    )
-                ],
-                sliders=[
-                    dict(
-                        steps=[
-                            dict(
-                                method="animate",
-                                args=[[str(i)], {"frame": {"duration": 100,
-                                                           "redraw": True}, "mode": "immediate"}],
-                                label=str(i+1)
-                            )
-                            for i in range(epochs)
-                        ],
-                        transition={"duration": 0},
-                        x=0,
-                        y=0,
-                        currentvalue={"font": {"size": 12}, "prefix": "Iteration: ",
-                                      "visible": True, "xanchor": "center"},
-                        len=0.9,
-                    )
-                ]
-            )
-            fig.update_layout(paper_bgcolor="#131720")
-            fig.update_layout(plot_bgcolor="#131720")
-            st.plotly_chart(fig)
-            st.write("")
+                # Add slider and play button
+                fig.update_layout(
+                    updatemenus=[
+                        dict(
+                            type="buttons",
+                            showactive=False,
+                            buttons=[
+                                dict(label="Play",
+                                    method="animate",
+                                    args=[None, {"frame": {"duration": 100, "redraw": True}, "fromcurrent": True}]),
+                                dict(label="Pause",
+                                    method="animate",
+                                    args=[[None], {"frame": {"duration": 0, "redraw": True}, "mode": "immediate", "transition": {"duration": 0}}])
+                            ]
+                        )
+                    ],
+                    sliders=[
+                        dict(
+                            steps=[
+                                dict(
+                                    method="animate",
+                                    args=[[str(i)], {"frame": {"duration": 100,
+                                                            "redraw": True}, "mode": "immediate"}],
+                                    label=str(i+1)
+                                )
+                                for i in range(p_epochs)
+                            ],
+                            transition={"duration": 0},
+                            x=0,
+                            y=0,
+                            currentvalue={"font": {"size": 12}, "prefix": "Iteration: ",
+                                        "visible": True, "xanchor": "center"},
+                            len=0.9,
+                        )
+                    ]
+                )
+                fig.update_layout(paper_bgcolor="#131720")
+                fig.update_layout(plot_bgcolor="#131720")
+                st.plotly_chart(fig)
+                st.write("")
 
         with stylable_container(key="perceptron_explanation",
                                 css_styles=["""
@@ -621,10 +629,10 @@ if st.session_state.stage == 3:
 
         col_left, col_middle, col_right = st.columns(3)
         with col_left:
-            nn_learning_rate = st.number_input("Learning rate", min_value=0.001, max_value=1.0, value=0.002,
+            nn_learning_rate = st.number_input("Learning rate", min_value=0.001, max_value=1.0, value=0.01,
                                                step=0.001, format="%.3f", help="How fast the model updates during training")
         with col_middle:
-            nn_epochs = st.number_input("Iterations", min_value=100, max_value=5000, value=500,
+            nn_epochs = st.number_input("Iterations", min_value=100, max_value=20000, value=1000,
                                         help="How many times the model sees all training data", step=100)
         with col_right:
             neuron_layers = st.number_input(
@@ -648,10 +656,6 @@ if st.session_state.stage == 3:
                                             border-radius: 0.6em;
                                             border-width: 1px;
                                             background-color: #262730;
-                                        }""",
-                                            """
-                                        polygon:nth-of-type(1) {
-                                            display: none
                                         }"""]):
             network_visual = NetworkGraph()
             graph = network_visual.get_graph(nn_hidden_layers)
@@ -866,6 +870,6 @@ with stylable_container(key="contact_info",
     st.write("Created by: Robert Örneving")
     url_github = "https://github.com/Eaglewing89/perceptron_visualization"
     st.write("[GitHub repository](%s)" % url_github)
-    url_linkedin = "https://www.streamlit.io"
+    url_linkedin = "https://www.linkedin.com/in/rorneving"
     st.write("[LinkedIn](%s)" % url_linkedin)
 # endregion
