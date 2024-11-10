@@ -658,7 +658,7 @@ class NetworkGraph():
                    bgcolor="transparent",
                    edge="black",
                    style="filled",
-                   size="5,2.3",
+                   size="5,4",
                    ratio="fill")
 
         # Input layer

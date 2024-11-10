@@ -651,15 +651,17 @@ if st.session_state.stage == 3:
 
         # Show a visual of the network for the user
         with stylable_container(key="network_graph",
-                                css_styles=["""
+                                css_styles="""
                                         div:nth-of-type(2) {
                                             border-radius: 0.6em;
                                             border-width: 1px;
                                             background-color: #262730;
-                                        }"""]):
+                                        }"""):
             network_visual = NetworkGraph()
             graph = network_visual.get_graph(nn_hidden_layers)
-            st.graphviz_chart(graph, use_container_width=True)
+            col1, col2, col3 = st.columns([1, 6, 1])
+            with col2:
+                st.graphviz_chart(graph)
 
         if st.button("Train model!", use_container_width=True):
 
