@@ -106,6 +106,7 @@ def remove_collection(i: int):
     st.session_state.collection_selection = "All"
     st.session_state.add_edit = i
 
+
 def remove_all_collections(i: int):
     total_collections = st.session_state.dataset.number_of_collections()
     if total_collections > 0:
@@ -173,7 +174,7 @@ with col_left:
 with col_middle:
     st.button("Perceptron Training", on_click=set_state,
               args=[2], use_container_width=True)
-    
+
 with col_right:
     st.button("Neural Network Training", on_click=set_state,
               args=[3], use_container_width=True)
@@ -208,9 +209,10 @@ if st.session_state.stage == 1:
                 total_collections = st.session_state.dataset.number_of_collections()
                 if total_collections > 0:
                     st.button("Remove all collections", use_container_width=True,
-                        on_click=remove_all_collections, args=[4])
+                              on_click=remove_all_collections, args=[4])
                 else:
-                    st.write("There are no point collections in the dataset. Press 'Add new points' to build a dataset.")
+                    st.write(
+                        "There are no point collections in the dataset. Press 'Add new points' to build a dataset.")
 
             else:
                 # update states based on collection selection
@@ -233,26 +235,26 @@ if st.session_state.stage == 1:
                                             padding: 0.5em;
                                         }
                                         """,
-                                                        """
+                                                    """
                                         div {
                                             padding-right: 0.5rem
                                         }
                                         """,
-                                                        """
+                                                    """
                                         div {
                                             padding-left: 0.1rem
                                         }
                                         """]):
                     st.slider("X",
-                            min_value=-5.0,
-                            max_value=5.0,
-                            key="slider_value_x_loc",
-                            on_change=on_slider_change_loc)
+                              min_value=-5.0,
+                              max_value=5.0,
+                              key="slider_value_x_loc",
+                              on_change=on_slider_change_loc)
                     st.slider("Y",
-                            min_value=-5.0,
-                            max_value=5.0,
-                            key="slider_value_y_loc",
-                            on_change=on_slider_change_loc)
+                              min_value=-5.0,
+                              max_value=5.0,
+                              key="slider_value_y_loc",
+                              on_change=on_slider_change_loc)
                 # scale
                 with stylable_container(key="scale_slider",
                                         css_styles=["""
@@ -262,21 +264,21 @@ if st.session_state.stage == 1:
                                             padding: 0.5em;
                                         }
                                         """,
-                                                        """
+                                                    """
                                         div {
                                             padding-right: 0.5rem
                                         }
                                         """,
-                                                        """
+                                                    """
                                         div {
                                             padding-left: 0.1rem
                                         }
                                         """]):
                     st.slider("Scale",
-                            min_value=0.01,
-                            max_value=3.0,
-                            key="slider_value_scale",
-                            on_change=on_slider_change_scale)
+                              min_value=0.01,
+                              max_value=3.0,
+                              key="slider_value_scale",
+                              on_change=on_slider_change_scale)
                 # rotation
                 with stylable_container(key="angle_slider",
                                         css_styles=["""
@@ -286,23 +288,23 @@ if st.session_state.stage == 1:
                                             padding: 0.5em;
                                         }
                                         """,
-                                                        """
+                                                    """
                                         div {
                                             padding-right: 0.5rem
                                         }
                                         """,
-                                                        """
+                                                    """
                                         div {
                                             padding-left: 0.1rem
                                         }
                                         """]):
                     st.slider("Angle",
-                            min_value=-2.0,
-                            max_value=2.0,
-                            step=0.1,
-                            key="slider_value_rotation",
-                            format="%fπ",
-                            on_change=on_slider_change_rotation)
+                              min_value=-2.0,
+                              max_value=2.0,
+                              step=0.1,
+                              key="slider_value_rotation",
+                              format="%fπ",
+                              on_change=on_slider_change_rotation)
                 # label
                 with stylable_container(key="label_slider",
                                         css_styles=["""
@@ -312,20 +314,20 @@ if st.session_state.stage == 1:
                                             padding: 0.5em;
                                         }
                                         """,
-                                                        """
+                                                    """
                                         div {
                                             padding-right: 0.5rem
                                         }
                                         """,
-                                                        """
+                                                    """
                                         div {
                                             padding-left: 0.1rem
                                         }
                                         """]):
                     st.select_slider("Class label",
-                                    options=[-1, 1],
-                                    key="slider_value_label",
-                                    on_change=on_slider_change_label)
+                                     options=[-1, 1],
+                                     key="slider_value_label",
+                                     on_change=on_slider_change_label)
                 # removal
                 st.button("Remove collection", use_container_width=True,
                           on_click=remove_collection, args=[3])
@@ -391,7 +393,8 @@ if st.session_state.stage == 1:
                         x=df[mask]["x"],
                         y=df[mask]["y"],
                         mode="markers",
-                        marker=dict(color="red" if label_value == -1 else "blue"),
+                        marker=dict(
+                            color="red" if label_value == -1 else "blue"),
                         name=f"Label {label_value}"
                     ))
 
@@ -411,8 +414,8 @@ if st.session_state.stage == 1:
                         ))
                 fig.update_layout(showlegend=False)
                 fig.update_yaxes(scaleanchor="x",
-                                scaleratio=1
-                                )
+                                 scaleratio=1
+                                 )
                 fig.update_layout(paper_bgcolor="#131720")
                 fig.update_layout(plot_bgcolor="#131720")
                 st.plotly_chart(fig)
@@ -438,12 +441,13 @@ if st.session_state.stage == 1:
                         x=df[mask]["x"],
                         y=df[mask]["y"],
                         mode="markers",
-                        marker=dict(color="red" if label_value == -1 else "blue"),
+                        marker=dict(
+                            color="red" if label_value == -1 else "blue"),
                         name=f"Label {label_value}"
                     ))
                 fig.update_yaxes(scaleanchor="x",
-                                scaleratio=1
-                                )
+                                 scaleratio=1
+                                 )
                 fig.update_layout(paper_bgcolor="#131720")
                 fig.update_layout(plot_bgcolor="#131720")
                 st.plotly_chart(fig)
@@ -489,9 +493,9 @@ if st.session_state.stage == 2:
                 width=800,
                 height=600,
                 xaxis={"range": [x_min, x_max], "visible": False,
-                    "showticklabels": False, "hoverformat": ".2f"},
+                       "showticklabels": False, "hoverformat": ".2f"},
                 yaxis={"range": [y_min, y_max], "visible": False,
-                    "showticklabels": False, "hoverformat": ".2f"},
+                       "showticklabels": False, "hoverformat": ".2f"},
             )
 
             fig.update_yaxes(
@@ -501,7 +505,7 @@ if st.session_state.stage == 2:
 
             # Create and add frames
             frames = [go.Frame(data=create_figure(weights=w, x_train=x_train, df=df).data, name=str(i))
-                    for i, w in enumerate(w_history)]
+                      for i, w in enumerate(w_history)]
             fig.frames = frames
 
             # Add slider and play button
@@ -512,11 +516,11 @@ if st.session_state.stage == 2:
                         showactive=False,
                         buttons=[
                             dict(label="Play",
-                                method="animate",
-                                args=[None, {"frame": {"duration": 100, "redraw": True}, "fromcurrent": True}]),
+                                 method="animate",
+                                 args=[None, {"frame": {"duration": 100, "redraw": True}, "fromcurrent": True}]),
                             dict(label="Pause",
-                                method="animate",
-                                args=[[None], {"frame": {"duration": 0, "redraw": True}, "mode": "immediate", "transition": {"duration": 0}}])
+                                 method="animate",
+                                 args=[[None], {"frame": {"duration": 0, "redraw": True}, "mode": "immediate", "transition": {"duration": 0}}])
                         ]
                     )
                 ],
@@ -526,7 +530,7 @@ if st.session_state.stage == 2:
                             dict(
                                 method="animate",
                                 args=[[str(i)], {"frame": {"duration": 100,
-                                                        "redraw": True}, "mode": "immediate"}],
+                                                           "redraw": True}, "mode": "immediate"}],
                                 label=str(i+1)
                             )
                             for i in range(epochs)
@@ -535,7 +539,7 @@ if st.session_state.stage == 2:
                         x=0,
                         y=0,
                         currentvalue={"font": {"size": 12}, "prefix": "Iteration: ",
-                                    "visible": True, "xanchor": "center"},
+                                      "visible": True, "xanchor": "center"},
                         len=0.9,
                     )
                 ]
@@ -598,139 +602,169 @@ if st.session_state.stage == 2:
                                 }
                                 """]):
             st.write("The dataset is currently empty.")
-            st.write("To proceed with perceptron training you must add at least one point collection to your dataset.")
+            st.write(
+                "To proceed with perceptron training you must add at least one point collection to your dataset.")
             st.write("-> Create/edit dataset -> Add new points")
 
 
 if st.session_state.stage == 3:
     total_collections = st.session_state.dataset.number_of_collections()
     if total_collections > 0:
-        df = st.session_state.dataset.build_dataframe()
 
-        # class -1 to 0 because it was the better choice for mlp due to ReLU and sigmoid functions.
-        df["label"] = df["label"].apply(lambda x: 0 if x == -1 else x)
+        col_left, col_middle, col_right = st.columns(3)
+        with col_left:
+            st.number_input("Learning rate", min_value=0.001, max_value=1.0, value=0.002,
+                            step=0.001, format="%.3f", help="How fast the model updates during training")
+        with col_middle:
+            st.number_input("Iterations", min_value=100, max_value=5000, value=500,
+                            help="How many times the model sees all training data")
+        with col_right:
+            neuron_layers = st.number_input(
+                "Hidden layers", min_value=1, max_value=10, value=1, help="Number of layers of neurons in the model")
+        columns = st.columns(neuron_layers)
+        hidden_layers = []
+        for layer in range(neuron_layers):
+            with columns[layer]:
+                neuron_input = st.number_input(
+                    f"Layer {layer+1} nodes", min_value=1, max_value=100)
+                hidden_layers.append(neuron_input)
 
-        x_train = np.array(df.drop(columns="label"))
-        y_train = np.array(df["label"])
+        if st.button("Train model!", use_container_width=True):
 
-        df["label"] = df["label"].astype(str)
+            with st.spinner("Step 1: Fitting data..."):
 
-        epochs = 101
-        learning_rate = 0.002
-        hidden_layers=[10,3]
+                df = st.session_state.dataset.build_dataframe()
 
-        st.write("Hello")
+                # class -1 to 0 because it was the better choice for mlp due to ReLU and sigmoid functions.
+                df["label"] = df["label"].apply(lambda x: 0 if x == -1 else x)
 
-        mlp = MultiLayerPerceptron(learning_rate=learning_rate, epochs=epochs, hidden_layers=hidden_layers)
-        mse = mlp.fit(x_train, y_train)
-        pred = mlp.predict(x_train)
-        #print(np.sum(np.abs(y_train-pred)))
+                x_train = np.array(df.drop(columns="label"))
+                y_train = np.array(df["label"])
 
-        with stylable_container(key="multi_perceptron_visual",
-                                css_styles=["""
-                                .main-svg:nth-of-type(1) {
-                                    border-radius: 0.6em;
-                                    border-style: solid;
-                                    border-width: 1px;
-                                    border-color: #41444C;
-                                }""",
-                                            """
-                                .main-svg:nth-of-type(2) {
-                                    padding: 0.6em;
-                                }"""]):
-            # Create the base figure
-            fig = go.Figure()
-            # dummy trace. Added because of a bug in plotly frames which removes the first trace.
-            fig.add_trace(go.Scatter(
-                x=df["x"][:1],
-                y=df["y"][:1],
-                mode="markers",
-                marker={"color": "blue"},
-                showlegend=False
-                ))
-            # add traces for the classes in our dataframe
-            for class_value in ["0", "1"]:
-                mask = df["label"] == class_value
-                fig.add_trace(go.Scatter(
-                    x=df[mask]["x"],
-                    y=df[mask]["y"],
-                    mode="markers",
-                    marker=dict(color="red" if class_value == "0" else "blue"),
-                    name=f"Class {class_value}        "
-                ))
+                df["label"] = df["label"].astype(str)
 
-            # Calculate the axis ranges
-            x_min, x_max = x_train[:, 0].min() - 0.5, x_train[:, 0].max() + 0.5
-            y_min, y_max = x_train[:, 1].min() - 0.5, x_train[:, 1].max() + 0.5
+                epochs = 501
+                learning_rate = 0.002
+                hidden_layers = [10, 3]
 
-            # Update the layout
-            fig.update_layout(
-                title="                        Neural Network Decision Boundary",
-                xaxis_title="X",
-                yaxis_title="Y",
-                width=800,
-                height=600,
-                xaxis={"range": [x_min, x_max], "visible": False,
-                    "showticklabels": False, "hoverformat": ".2f"},
-                yaxis={"range": [y_min, y_max], "visible": False,
-                    "showticklabels": False, "hoverformat": ".2f"},
-            )
+                mlp = MultiLayerPerceptron(
+                    learning_rate=learning_rate, epochs=epochs, hidden_layers=hidden_layers)
+                mse = mlp.fit(x_train, y_train)
+                pred = mlp.predict(x_train)
+                # print(np.sum(np.abs(y_train-pred)))
 
-            fig.update_yaxes(
-                scaleanchor="x",
-                scaleratio=1,
-            )
+                st.write("trained")
 
-            length = mlp.get_history_length()
-            interval = mlp.get_save_interval()
-            iterations = [i*interval for i in range(length-1)]
-            iterations.append(epochs+1)
+            with st.spinner("Step 2: Generating animation frames..."):
 
-            # Create and add frames
-            frames = [go.Frame(data=create_figure_mlp(model=mlp, features=x_train, index=i).data, name=str(i))
-                    for i in range(length)]
-            fig.frames = frames
+                with stylable_container(key="multi_perceptron_visual",
+                                        css_styles=["""
+                                        .main-svg:nth-of-type(1) {
+                                            border-radius: 0.6em;
+                                            border-style: solid;
+                                            border-width: 1px;
+                                            border-color: #41444C;
+                                        }""",
+                                                    """
+                                        .main-svg:nth-of-type(2) {
+                                            padding: 0.6em;
+                                        }"""]):
+                    # Create the base figure
+                    fig = go.Figure()
+                    # dummy trace. Added because of a bug in plotly frames which removes the first trace.
+                    fig.add_trace(go.Scatter(
+                        x=df["x"][:1],
+                        y=df["y"][:1],
+                        mode="markers",
+                        marker={"color": "blue"},
+                        showlegend=False
+                    ))
+                    # add traces for the classes in our dataframe
+                    for class_value in ["0", "1"]:
+                        mask = df["label"] == class_value
+                        fig.add_trace(go.Scatter(
+                            x=df[mask]["x"],
+                            y=df[mask]["y"],
+                            mode="markers",
+                            marker=dict(
+                                color="red" if class_value == "0" else "blue"),
+                            name=f"Class {class_value}        "
+                        ))
 
-            # Add slider and play button
-            fig.update_layout(
-                updatemenus=[
-                    dict(
-                        type="buttons",
-                        showactive=False,
-                        buttons=[
-                            dict(label="Play",
-                                method="animate",
-                                args=[None, {"frame": {"duration": 100, "redraw": True}, "fromcurrent": True}]),
-                            dict(label="Pause",
-                                method="animate",
-                                args=[[None], {"frame": {"duration": 0, "redraw": True}, "mode": "immediate", "transition": {"duration": 0}}])
+                    # Calculate the axis ranges
+                    x_min, x_max = x_train[:, 0].min(
+                    ) - 0.5, x_train[:, 0].max() + 0.5
+                    y_min, y_max = x_train[:, 1].min(
+                    ) - 0.5, x_train[:, 1].max() + 0.5
+
+                    # Update the layout
+                    fig.update_layout(
+                        title="                        Neural Network Decision Boundary",
+                        xaxis_title="X",
+                        yaxis_title="Y",
+                        width=800,
+                        height=600,
+                        xaxis={"range": [x_min, x_max], "visible": False,
+                               "showticklabels": False, "hoverformat": ".2f"},
+                        yaxis={"range": [y_min, y_max], "visible": False,
+                               "showticklabels": False, "hoverformat": ".2f"},
+                    )
+
+                    fig.update_yaxes(
+                        scaleanchor="x",
+                        scaleratio=1,
+                    )
+
+                    length = mlp.get_history_length()
+                    interval = mlp.get_save_interval()
+                    iterations = [i*interval for i in range(length-1)]
+                    iterations.append(epochs+1)
+
+                    # Create and add frames
+                    frames = [go.Frame(data=create_figure_mlp(model=mlp, features=x_train, index=i).data, name=str(i))
+                              for i in range(length)]
+                    fig.frames = frames
+
+                    # Add slider and play button
+                    fig.update_layout(
+                        updatemenus=[
+                            dict(
+                                type="buttons",
+                                showactive=False,
+                                buttons=[
+                                    dict(label="Play",
+                                         method="animate",
+                                         args=[None, {"frame": {"duration": 100, "redraw": True}, "fromcurrent": True}]),
+                                    dict(label="Pause",
+                                         method="animate",
+                                         args=[[None], {"frame": {"duration": 0, "redraw": True}, "mode": "immediate", "transition": {"duration": 0}}])
+                                ]
+                            )
+                        ],
+                        sliders=[
+                            dict(
+                                steps=[
+                                    dict(
+                                        method="animate",
+                                        args=[[str(i)], {"frame": {"duration": 100,
+                                                                   "redraw": True}, "mode": "immediate"}],
+                                        label=str(iterations[i])
+                                    )
+                                    for i in range(length)
+                                ],
+                                transition={"duration": 0},
+                                x=0,
+                                y=0,
+                                currentvalue={"font": {"size": 12}, "prefix": "Iteration: ",
+                                              "visible": True, "xanchor": "center"},
+                                len=0.9,
+                            )
                         ]
                     )
-                ],
-                sliders=[
-                    dict(
-                        steps=[
-                            dict(
-                                method="animate",
-                                args=[[str(i)], {"frame": {"duration": 100,
-                                                        "redraw": True}, "mode": "immediate"}],
-                                label=str(iterations[i])
-                            )
-                            for i in range(length)
-                        ],
-                        transition={"duration": 0},
-                        x=0,
-                        y=0,
-                        currentvalue={"font": {"size": 12}, "prefix": "Iteration: ",
-                                    "visible": True, "xanchor": "center"},
-                        len=0.9,
-                    )
-                ]
-            )
-            fig.update_layout(paper_bgcolor="#131720")
-            fig.update_layout(plot_bgcolor="#131720")
-            st.plotly_chart(fig)
-            st.write("")
+                    fig.update_layout(paper_bgcolor="#131720")
+                    fig.update_layout(plot_bgcolor="#131720")
+                    st.plotly_chart(fig)
+                    st.write("")
 
         with stylable_container(key="multi_perceptron_explanation",
                                 css_styles=["""
@@ -785,7 +819,8 @@ if st.session_state.stage == 3:
                                 }
                                 """]):
             st.write("The dataset is currently empty.")
-            st.write("To proceed with neural network training you must add at least one point collection to your dataset.")
+            st.write(
+                "To proceed with neural network training you must add at least one point collection to your dataset.")
             st.write("-> Create/edit dataset -> Add new points")
 
 with stylable_container(key="contact_info",
@@ -807,7 +842,7 @@ with stylable_container(key="contact_info",
                         }
                         """]):
     st.write("Created by: Robert Örneving")
-    url = "https://www.streamlit.io"
-    st.write("[LinkedIn](%s)" % url)
-    url2 = "https://github.com/Eaglewing89/perceptron_visualization"
-    st.write("[GitHub repository](%s)" % url2)
+    url_github = "https://github.com/Eaglewing89/perceptron_visualization"
+    st.write("[GitHub repository](%s)" % url_github)
+    url_linkedin = "https://www.streamlit.io"
+    st.write("[LinkedIn](%s)" % url_linkedin)

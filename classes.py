@@ -5,6 +5,7 @@ from math import pi, sin, cos
 from random import uniform, choice
 import pandas as pd
 import numpy as np
+import graphviz
 
 
 class Perceptron:
@@ -48,7 +49,7 @@ class Perceptron:
         self.weights = np.random.rand(dimension + 1)
         # self.weights = np.array([0,1.1,-1])
         w_history = []
-        for epoch in range(epochs):
+        for _ in range(epochs):
             for index in range(length):
                 weighted_sum = (
                     x_train[index]@self.weights[1:]) + self.weights[0]
@@ -90,19 +91,20 @@ class PointCollection:
                 [[self._skewed_uniform(a*cos(angle)), self._skewed_uniform(b*sin(angle))]])
             points = np.concat((points, new_point))
         return points
-    
+
     def _create_rectangle_points(self, number: int, short_side: float) -> np.array:
-        random_choice = [-1,1]
+        random_choice = [-1, 1]
         points = np.array([]).reshape(0, 2)
         for _ in range(number):
             if choice(random_choice) == 1:
                 x = 1*short_side
-                y = uniform(0,1)
+                y = uniform(0, 1)
             else:
-                x = uniform(0,1)*short_side
+                x = uniform(0, 1)*short_side
                 y = 1
             skew = self._skewed_uniform(1)
-            new_point = np.array([[x*choice(random_choice)*skew,y*choice(random_choice)*skew]])
+            new_point = np.array(
+                [[x*choice(random_choice)*skew, y*choice(random_choice)*skew]])
             points = np.concat((points, new_point))
         return points
 
@@ -197,8 +199,9 @@ class PointCollection:
 
     def add_rectangle_collection(self, number_of_points: int, short_side: float = 1) -> None:
         try:
-            self.collections_points.append(self._create_rectangle_points(number_of_points, short_side))
-            self.collections_locations.append([float(0),float(0)])
+            self.collections_points.append(
+                self._create_rectangle_points(number_of_points, short_side))
+            self.collections_locations.append([float(0), float(0)])
             self.collections_rotations.append(float(0))
             self.collections_labels.append(int(1))
             self.collections_scales.append(float(1))
@@ -377,12 +380,14 @@ class PointCollection:
         df["label"] = df["label"].astype(int)
         return df
 
+
 class MultiLayerPerceptron():
     """
     A multi layer perceptron model.
     This one is designed to save the weight history at given intervals during the training process 
     for the purpose of giving the option to predict based on previous weights. 
     """
+
     def __init__(self, learning_rate: float, epochs: int, hidden_layers: list[int], save_interval: int = 100) -> None:
         """
         Init method
@@ -416,7 +421,7 @@ class MultiLayerPerceptron():
             int: number of weights total.
         """
         return len(self.weights_history)
-    
+
     def get_save_interval(self) -> int:
         """
         Get the number for save intervals.
@@ -501,7 +506,7 @@ class MultiLayerPerceptron():
             list[float]: mean squared error per epoch. 
         """
         x_dim = x_train.shape[1]
-        out_dim = 1 # hard coded single perceptron as the final layer
+        out_dim = 1  # hard coded single perceptron as the final layer
         layers = self.hidden_layers
         layers.insert(0, x_dim)
         layers.append(out_dim)
@@ -513,10 +518,10 @@ class MultiLayerPerceptron():
             try:
                 weights.append(np.random.random((layers[index+1], layer)))
             except IndexError:
-                pass # the last layer does not have weights after it so we pass
+                pass  # the last layer does not have weights after it so we pass
         # init biases
         for weight in weights:
-            biases.append(np.random.random((len(weight),1)))
+            biases.append(np.random.random((len(weight), 1)))
 
         # add initial matrices to history
         self.weights_history.append(weights.copy())
@@ -535,7 +540,8 @@ class MultiLayerPerceptron():
                 # hidden layers uses the output of the previous layer
                 for index, weight in enumerate(weights[1:]):
                     previous_activated = self._relu(outputs[index])
-                    outputs.append(weight @ previous_activated + biases[index + 1])
+                    outputs.append(
+                        weight @ previous_activated + biases[index + 1])
                 # final output is a regular perceptron and uses a different activation function
                 last_output_sigmoid = self._sigmoid(outputs[-1])
                 y_predicted = last_output_sigmoid[0][0]
@@ -543,36 +549,45 @@ class MultiLayerPerceptron():
                 # backwards propagation for finding the gradients
                 deltas = []
                 # delta at the last position is the perceptron and uses a different activation function
-                delta = (last_output_sigmoid - y_train[y_index]) * self._sigmoid_derivative(last_output_sigmoid)
+                delta = (last_output_sigmoid -
+                         y_train[y_index]) * self._sigmoid_derivative(last_output_sigmoid)
                 deltas.append(delta)
-                for index in np.arange(-1,-(len(weights)),-1):
-                    delta = (deltas[(-index-1)] @ weights[index]) * (self._relu_derivative(outputs[index-1])).T
+                for index in np.arange(-1, -(len(weights)), -1):
+                    delta = (deltas[(-index-1)] @ weights[index]) * \
+                        (self._relu_derivative(outputs[index-1])).T
                     deltas.append(delta)
-                
+
                 # gradient descent to update the weights
                 for index, delta in enumerate(deltas):
                     reverse_index = -index-1
                     try:
-                        weights[reverse_index] = weights[reverse_index] - self.learning_rate*np.kron(delta.T,outputs[reverse_index-1].T)
-                        biases[reverse_index] = biases[reverse_index] - self.learning_rate*delta.T
-                    except IndexError: # the final update uses the original output from x
-                        weights[reverse_index] = weights[reverse_index] - self.learning_rate*np.kron(delta.T,x.reshape(1, len(x)))
-                        biases[reverse_index] = biases[reverse_index] - self.learning_rate*delta.T
-                
+                        weights[reverse_index] = weights[reverse_index] - \
+                            self.learning_rate * \
+                            np.kron(delta.T, outputs[reverse_index-1].T)
+                        biases[reverse_index] = biases[reverse_index] - \
+                            self.learning_rate*delta.T
+                    except IndexError:  # the final update uses the original output from x
+                        weights[reverse_index] = weights[reverse_index] - \
+                            self.learning_rate * \
+                            np.kron(delta.T, x.reshape(1, len(x)))
+                        biases[reverse_index] = biases[reverse_index] - \
+                            self.learning_rate*delta.T
+
                 # squared error
                 squared_error.append((y_predicted-y_train[y_index])**2)
-            mean_squared_error.append(float(sum(squared_error)/len(squared_error)))
+            mean_squared_error.append(
+                float(sum(squared_error)/len(squared_error)))
             # add trained weights to history
             if epoch % self.save_interval == 0:
                 self.weights_history.append(weights.copy())
                 self.biases_history.append(biases.copy())
-        
+
         # add final model to history
         self.weights_history.append(weights.copy())
         self.biases_history.append(biases.copy())
-        
+
         return mean_squared_error
-    
+
     def predict(self, x: np.array, index: int = -1) -> list[int]:
         """
         Predict method. 
@@ -589,7 +604,7 @@ class MultiLayerPerceptron():
         # feed forward
         try:
             output = weights[0] @ x.T + biases[0]
-        except ValueError: # if we only want prediction of a single point. broken for some reason
+        except ValueError:  # if we only want prediction of a single point. broken for some reason
             output = weights[0] @ x.reshape(1, len(x)).T + biases[0]
         for index, weight in enumerate(weights[1:]):
             output = self._relu(output)
@@ -598,3 +613,135 @@ class MultiLayerPerceptron():
         # take the result through a step function to get exactly 0 or 1
         output = self._step_function(output)
         return output[0]
+
+
+class NetworkGraph():
+    """
+    Class for creating a graph of a neural network. 
+    """
+
+    def __init__(self) -> None:
+        self.input_nodes = 2
+        self.output_nodes = 1
+        self.max_visible_nodes = 5
+        self.edge_color = "#888888"
+
+    def get_graph(self, hidden_layers: list[int]) -> graphviz.Digraph:
+        """
+        Creates a graph of a neural network based on hidden layers. 
+
+        Args:
+            hidden_layers (list[int]): a list containing nodes per layer.
+
+        Returns:
+            graphviz.Digraph: graphviz object to be displayed. 
+        """
+        # Base graph
+        graph = graphviz.Digraph()
+        graph.attr(rankdir="LR",
+                   bgcolor="#262730",
+                   edge="black",
+                   style="filled",
+                   size="5,2.5",
+                   ratio="fill")
+
+        # Input layer
+        with graph.subgraph(name="input") as c:
+            c.attr(rank="same")
+            input_labels = ["x", "y"]
+            for i in range(self.input_nodes):
+                c.node(f"i{i}", input_labels[i],
+                       style="filled",
+                       fillcolor="#90EE90",
+                       shape="circle",
+                       fixedsize="true",
+                       width="0.4",
+                       height="0.4")
+
+        # Hidden layers
+        for layer_idx, nodes in enumerate(hidden_layers):
+            with graph.subgraph(name=f"hidden_{layer_idx}") as c:
+                c.attr(rank="same")
+                visible_nodes = min(nodes, self.max_visible_nodes)
+                for node in range(visible_nodes):
+                    c.node(f"h{layer_idx}_{node}", "",
+                           style="filled",
+                           fillcolor="#FAFAFA",
+                           shape="circle",
+                           fixedsize="true",
+                           width="0.4",
+                           height="0.4")
+
+                if nodes > self.max_visible_nodes:
+                    c.node(f"h{layer_idx}_more", self._get_node_label(nodes, self.max_visible_nodes),
+                           style="filled",
+                           fillcolor="#FAFAFA",
+                           shape="note",
+                           fontsize="10")
+
+        # Output layer
+        with graph.subgraph(name="output") as c:
+            c.attr(rank="same")
+            for i in range(self.output_nodes):
+                c.node(f"o{i}", "Output",
+                       style="filled",
+                       fillcolor="#FFB6C1",
+                       shape="circle",
+                       fixedsize="true",
+                       width="0.4",
+                       height="0.4")
+
+        # Connect input to first hidden layer
+        first_hidden_visible = self._get_visible_node_count(hidden_layers[0])
+        for i in range(self.input_nodes):
+            for j in range(first_hidden_visible):
+                graph.edge(f"i{i}", f"h0_{j}", dir="none",
+                           color=self.edge_color)
+
+        # Connect hidden layers
+        for layer_idx in range(len(hidden_layers) - 1):
+            current_visible = self._get_visible_node_count(
+                hidden_layers[layer_idx])
+            next_visible = self._get_visible_node_count(
+                hidden_layers[layer_idx + 1])
+
+            for node1 in range(current_visible):
+                for node2 in range(next_visible):
+                    graph.edge(f"h{layer_idx}_{node1}", f"h{layer_idx+1}_{node2}",
+                               dir="none", color=self.edge_color)
+
+        # Connect last hidden layer to output
+        last_hidden_visible = self._get_visible_node_count(hidden_layers[-1])
+        for i in range(last_hidden_visible):
+            for j in range(self.output_nodes):
+                graph.edge(f"h{len(hidden_layers)-1}_{i}", f"o{j}",
+                           dir="none", color=self.edge_color)
+
+        return graph
+
+    def _get_node_label(self, total_nodes: int, visible_nodes: int) -> str:
+        """
+        Returns the node labels accounting for overflow nodes.
+
+        Args:
+            total_nodes (_type_): nodes in layer.
+            visible_nodes (_type_): max nodes allowed.
+
+        Returns:
+            str: name of node.
+        """
+        if total_nodes > visible_nodes:
+            return f"... ({total_nodes - visible_nodes} more)"
+        return ""
+
+    def _get_visible_node_count(self, total_nodes: int) -> int:
+        """
+        Return amount of visible nodes.
+
+        Args:
+            total_nodes (int): nodes in layer.
+
+        Returns:
+            int: amount visible nodes.
+        """
+        return min(total_nodes, self.max_visible_nodes)
