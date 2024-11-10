@@ -642,13 +642,13 @@ class NetworkGraph():
                    bgcolor="#262730",
                    edge="black",
                    style="filled",
-                   size="5,2.5",
+                   size="5,2.3",
                    ratio="fill")
 
         # Input layer
         with graph.subgraph(name="input") as c:
             c.attr(rank="same")
-            input_labels = ["x", "y"]
+            input_labels = ["X", "Y"]
             for i in range(self.input_nodes):
                 c.node(f"i{i}", input_labels[i],
                        style="filled",

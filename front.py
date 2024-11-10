@@ -3,8 +3,11 @@ import numpy as np
 import streamlit as st
 from streamlit_extras.stylable_container import stylable_container
 import plotly.graph_objects as go
-from classes import PointCollection, Perceptron, MultiLayerPerceptron
+from classes import PointCollection, Perceptron, MultiLayerPerceptron, NetworkGraph
 from functions import create_figure, create_figure_mlp
+
+
+# region Page info, Session states and Callback functions
 
 st.set_page_config(
     page_title="Perceptron Visualization"
@@ -182,7 +185,9 @@ with col_right:
 st.markdown("""<hr style="height:6px;border:none;color:#262730;background-color:#262730;" /> """,
             unsafe_allow_html=True)
 
-# editing mode
+# endregion
+
+# region Editing dataset mode
 if st.session_state.stage == 1:
     col_left, col_right = st.columns(2)
     with col_left:
@@ -451,7 +456,9 @@ if st.session_state.stage == 1:
                 fig.update_layout(paper_bgcolor="#131720")
                 fig.update_layout(plot_bgcolor="#131720")
                 st.plotly_chart(fig)
+# endregion
 
+# region Single-layer perceptron
 if st.session_state.stage == 2:
     total_collections = st.session_state.dataset.number_of_collections()
     if total_collections > 0:
@@ -605,29 +612,50 @@ if st.session_state.stage == 2:
             st.write(
                 "To proceed with perceptron training you must add at least one point collection to your dataset.")
             st.write("-> Create/edit dataset -> Add new points")
+# endregion
 
-
+# region Multi-layer perceptron
 if st.session_state.stage == 3:
     total_collections = st.session_state.dataset.number_of_collections()
     if total_collections > 0:
 
         col_left, col_middle, col_right = st.columns(3)
         with col_left:
-            st.number_input("Learning rate", min_value=0.001, max_value=1.0, value=0.002,
-                            step=0.001, format="%.3f", help="How fast the model updates during training")
+            nn_learning_rate = st.number_input("Learning rate", min_value=0.001, max_value=1.0, value=0.002,
+                                               step=0.001, format="%.3f", help="How fast the model updates during training")
         with col_middle:
-            st.number_input("Iterations", min_value=100, max_value=5000, value=500,
-                            help="How many times the model sees all training data")
+            nn_epochs = st.number_input("Iterations", min_value=100, max_value=5000, value=500,
+                                        help="How many times the model sees all training data", step=100)
         with col_right:
             neuron_layers = st.number_input(
                 "Hidden layers", min_value=1, max_value=10, value=1, help="Number of layers of neurons in the model")
         columns = st.columns(neuron_layers)
-        hidden_layers = []
-        for layer in range(neuron_layers):
+        nn_hidden_layers = []
+        with columns[0]:
+            neuron_input = st.number_input(
+                "Layer 1", min_value=1, max_value=100, value=3)
+            nn_hidden_layers.append(neuron_input)
+        for layer in range(1, neuron_layers):
             with columns[layer]:
                 neuron_input = st.number_input(
-                    f"Layer {layer+1} nodes", min_value=1, max_value=100)
-                hidden_layers.append(neuron_input)
+                    f"Layer {layer+1}", min_value=1, max_value=100)
+                nn_hidden_layers.append(neuron_input)
+
+        # Show a visual of the network for the user
+        with stylable_container(key="network_graph",
+                                css_styles=["""
+                                        div:nth-of-type(2) {
+                                            border-radius: 0.6em;
+                                            border-width: 1px;
+                                            background-color: #262730;
+                                        }""",
+                                            """
+                                        polygon:nth-of-type(1) {
+                                            display: none
+                                        }"""]):
+            network_visual = NetworkGraph()
+            graph = network_visual.get_graph(nn_hidden_layers)
+            st.graphviz_chart(graph, use_container_width=True)
 
         if st.button("Train model!", use_container_width=True):
 
@@ -637,23 +665,15 @@ if st.session_state.stage == 3:
 
                 # class -1 to 0 because it was the better choice for mlp due to ReLU and sigmoid functions.
                 df["label"] = df["label"].apply(lambda x: 0 if x == -1 else x)
-
                 x_train = np.array(df.drop(columns="label"))
                 y_train = np.array(df["label"])
-
                 df["label"] = df["label"].astype(str)
 
-                epochs = 501
-                learning_rate = 0.002
-                hidden_layers = [10, 3]
-
                 mlp = MultiLayerPerceptron(
-                    learning_rate=learning_rate, epochs=epochs, hidden_layers=hidden_layers)
+                    learning_rate=nn_learning_rate, epochs=nn_epochs, hidden_layers=nn_hidden_layers)
                 mse = mlp.fit(x_train, y_train)
                 pred = mlp.predict(x_train)
                 # print(np.sum(np.abs(y_train-pred)))
-
-                st.write("trained")
 
             with st.spinner("Step 2: Generating animation frames..."):
 
@@ -718,7 +738,7 @@ if st.session_state.stage == 3:
                     length = mlp.get_history_length()
                     interval = mlp.get_save_interval()
                     iterations = [i*interval for i in range(length-1)]
-                    iterations.append(epochs+1)
+                    iterations.append(nn_epochs+1)
 
                     # Create and add frames
                     frames = [go.Frame(data=create_figure_mlp(model=mlp, features=x_train, index=i).data, name=str(i))
@@ -822,7 +842,9 @@ if st.session_state.stage == 3:
             st.write(
                 "To proceed with neural network training you must add at least one point collection to your dataset.")
             st.write("-> Create/edit dataset -> Add new points")
+# endregion
 
+# region Contact info
 with stylable_container(key="contact_info",
                         css_styles=["""
                         {
@@ -846,3 +868,4 @@ with stylable_container(key="contact_info",
     st.write("[GitHub repository](%s)" % url_github)
     url_linkedin = "https://www.streamlit.io"
     st.write("[LinkedIn](%s)" % url_linkedin)
+# endregion
