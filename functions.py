@@ -1,33 +1,23 @@
 """
 Collection of necessary functions
 """
-
-from math import pi, sin, cos
-from random import uniform
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 from classes import MultiLayerPerceptron
 
+def create_figure(weights: np.array, x_train: pd.DataFrame, df: pd.DataFrame) -> go.Figure:
+    """
+    Generates a figure specifically for the single layer perceptron with decision boundary.
 
+    Args:
+        weights (np.array): weight vector for the boundary.
+        x_train (pd.DataFrame): specific training data.
+        df (pd.DataFrame): dataframe containing the dataset.
 
-def create_square_class(number: int, label: int) -> list[list[float]]:
-    points = []
-    for point in range(number):
-        points.append((uniform(-1, 1), uniform(-1, 1), label))
-    return points
-
-
-def create_circle_class(number: int, label: int):
-    points = []
-    for point in range(number):
-        angle = uniform(0, 2 * pi)
-        # points.append((cos(angle), sin(angle), label))
-        points.append((uniform(cos(angle), 0), uniform(sin(angle), 0), label))
-    return points
-
-
-def create_figure(weights: np.array, x_train: pd.DataFrame, df: pd.DataFrame):
+    Returns:
+        go.Figure: figure.
+    """
     # Calculate the decision boundary line
     x_range = np.linspace(x_train[:, 0].min()-10, x_train[:, 0].max()+10, 1000)
     y_boundary = -(weights[1] * x_range + weights[0]) / weights[2]

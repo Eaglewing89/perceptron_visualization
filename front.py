@@ -111,9 +111,9 @@ def remove_collection(i: int):
 
 
 def remove_all_collections(i: int):
-    total_collections = st.session_state.dataset.number_of_collections()
-    if total_collections > 0:
-        for _ in range(total_collections):
+    tot_collections = st.session_state.dataset.number_of_collections()
+    if tot_collections > 0:
+        for _ in range(tot_collections):
             st.session_state.dataset.remove_collection(0)
         st.session_state.add_edit = i
 
