@@ -1,6 +1,7 @@
 """
 Collection of necessary classes
 """
+import copy
 from math import pi, sin, cos
 from random import uniform, choice
 import pandas as pd
@@ -494,97 +495,112 @@ class MultiLayerPerceptron():
         """
         return np.where(x > 0.5, 1, 0)
 
-    def fit(self, x_train: np.array, y_train: np.array) -> list[float]:
+    def fit(self, x_train: np.array, y_train: np.array, batch_size: int=32) -> list[float]:
         """
-        Method for training the model. 
+        Method for training the model using mini-batch gradient descent.
 
         Args:
             x_train (np.array): array of input vectors.
             y_train (np.array): array of labels.
 
         Returns:
-            list[float]: mean squared error per epoch. 
+            list[float]: mean squared error per epoch.
         """
         x_dim = x_train.shape[1]
         out_dim = 1  # hard coded single perceptron as the final layer
+        
+        # Configure network architecture
         layers = self.hidden_layers
         layers.insert(0, x_dim)
         layers.append(out_dim)
+        
+        # Initialize weights and biases using He initialization
         weights = []
         biases = []
+        for index, layer in enumerate(layers[:-1]):
+            scale = np.sqrt(2.0 / layer)
+            weights.append(np.random.randn(layers[index + 1], layer) * scale)
+            biases.append(np.random.randn(layers[index + 1], 1) * scale)
 
-        # init weight matrices
-        for index, layer in enumerate(layers):
-            try:
-                weights.append(np.random.random((layers[index+1], layer)))
-            except IndexError:
-                pass  # the last layer does not have weights after it so we pass
-        # init biases
-        for weight in weights:
-            biases.append(np.random.random((len(weight), 1)))
-
-        # add initial matrices to history
-        self.weights_history.append(weights.copy())
-        self.biases_history.append(biases.copy())
+        # Store initial state
+        self.weights_history.append(copy.deepcopy(weights))
+        self.biases_history.append(copy.deepcopy(biases))
 
         mean_squared_error = []
+        n_samples = x_train.shape[0]
+        n_batches = int(np.ceil(n_samples / batch_size))
+
         for epoch in range(self.epochs):
-            squared_error = []
-            # train weights
-            for y_index, x in enumerate(x_train):
+            # Shuffle data at the start of each epoch
+            shuffle_idx = np.random.permutation(n_samples)
+            x_shuffled = x_train[shuffle_idx]
+            y_shuffled = y_train[shuffle_idx]
+            
+            epoch_errors = []
 
-                # feed forward
-                # first output uses the input x
-                outputs = []
-                outputs.append(weights[0] @ x.reshape(1, len(x)).T + biases[0])
-                # hidden layers uses the output of the previous layer
-                for index, weight in enumerate(weights[1:]):
-                    previous_activated = self._relu(outputs[index])
-                    outputs.append(
-                        weight @ previous_activated + biases[index + 1])
-                # final output is a regular perceptron and uses a different activation function
-                last_output_sigmoid = self._sigmoid(outputs[-1])
-                y_predicted = last_output_sigmoid[0][0]
+            for batch in range(n_batches):
+                start_idx = batch * batch_size
+                end_idx = min((batch + 1) * batch_size, n_samples)
+                
+                # Get batch data
+                x_batch = x_shuffled[start_idx:end_idx]
+                y_batch = y_shuffled[start_idx:end_idx]
+                current_batch_size = end_idx - start_idx
 
-                # backwards propagation for finding the gradients
+                # Forward pass
+                activations = [x_batch.T]  # Store all activations for backprop
+                outputs = []  # Store all outputs before activation
+
+                # Hidden layers
+                for i in range(len(weights) - 1):
+                    output = weights[i] @ activations[-1] + biases[i]
+                    outputs.append(output)
+                    activation = self._relu(output)
+                    activations.append(activation)
+
+                # Output layer (sigmoid activation)
+                final_output = weights[-1] @ activations[-1] + biases[-1]
+                outputs.append(final_output)
+                y_pred = self._sigmoid(final_output)
+                activations.append(y_pred)
+
+                # Backward pass
                 deltas = []
-                # delta at the last position is the perceptron and uses a different activation function
-                delta = (last_output_sigmoid -
-                         y_train[y_index]) * self._sigmoid_derivative(last_output_sigmoid)
+                
+                # Output layer error
+                delta = (y_pred - y_batch.reshape(1, -1)) * self._sigmoid_derivative(outputs[-1])
                 deltas.append(delta)
-                for index in np.arange(-1, -(len(weights)), -1):
-                    delta = (deltas[(-index-1)] @ weights[index]) * \
-                        (self._relu_derivative(outputs[index-1])).T
-                    deltas.append(delta)
 
-                # gradient descent to update the weights
-                for index, delta in enumerate(deltas):
-                    reverse_index = -index-1
-                    try:
-                        weights[reverse_index] = weights[reverse_index] - \
-                            self.learning_rate * \
-                            np.kron(delta.T, outputs[reverse_index-1].T)
-                        biases[reverse_index] = biases[reverse_index] - \
-                            self.learning_rate*delta.T
-                    except IndexError:  # the final update uses the original output from x
-                        weights[reverse_index] = weights[reverse_index] - \
-                            self.learning_rate * \
-                            np.kron(delta.T, x.reshape(1, len(x)))
-                        biases[reverse_index] = biases[reverse_index] - \
-                            self.learning_rate*delta.T
+                # Hidden layer errors
+                for i in range(len(weights) - 2, -1, -1):
+                    delta = (weights[i + 1].T @ deltas[0]) * self._relu_derivative(outputs[i])
+                    deltas.insert(0, delta)
 
-                # squared error
-                squared_error.append((y_predicted-y_train[y_index])**2)
-            mean_squared_error.append(
-                float(sum(squared_error)/len(squared_error)))
-            # add trained weights to history
+                # Update weights and biases
+                for i, weight in enumerate(weights):
+                    # Calculate average gradients over the batch
+                    weight_gradient = deltas[i] @ activations[i].T / current_batch_size
+                    bias_gradient = np.mean(deltas[i], axis=1, keepdims=True)
+                    
+                    # Update with momentum (optional improvement)
+                    weight -= self.learning_rate * weight_gradient
+                    biases[i] -= self.learning_rate * bias_gradient
+
+                # Calculate batch error
+                batch_error = np.mean((y_pred.T - y_batch) ** 2)
+                epoch_errors.append(batch_error)
+
+            # Store epoch metrics
+            mean_squared_error.append(float(np.mean(epoch_errors)))
+            
+            # Save weights periodically
             if epoch % self.save_interval == 0:
-                self.weights_history.append(weights.copy())
-                self.biases_history.append(biases.copy())
+                self.weights_history.append(copy.deepcopy(weights))
+                self.biases_history.append(copy.deepcopy(biases))
 
-        # add final model to history
-        self.weights_history.append(weights.copy())
-        self.biases_history.append(biases.copy())
+        # Save final weights
+        self.weights_history.append(copy.deepcopy(weights))
+        self.biases_history.append(copy.deepcopy(biases))
 
         return mean_squared_error
 

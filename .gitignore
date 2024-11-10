@@ -156,6 +156,8 @@ cython_debug/
 
 # Project specific files
 *test.py
+single_perceptron.py
+multi_perceptron.py
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
