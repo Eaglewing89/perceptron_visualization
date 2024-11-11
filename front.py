@@ -130,44 +130,6 @@ def set_state(i: int) -> None:
 def set_add_edit(i: int) -> None:
     st.session_state.add_edit = i
 
-
-@st.cache_data
-def pregen_datapoints():
-    st.session_state.dataset.add_ellipse_collection(
-        number_of_points=50, a=0.4, b=1, label=1)
-    st.session_state.dataset.change_collection_rotation(
-        index=0, rotation_angle=0.3*pi)
-    st.session_state.dataset.change_collection_location(
-        index=0, position_x=-1.84, position_y=1.30)
-    st.session_state.dataset.change_collection_scale(index=0, scale=1.0)
-
-    st.session_state.dataset.add_ellipse_collection(
-        number_of_points=40, a=0.4, b=1, label=1)
-    st.session_state.dataset.change_collection_rotation(
-        index=1, rotation_angle=-0.2*pi)
-    st.session_state.dataset.change_collection_location(
-        index=1, position_x=-1.40, position_y=0.0)
-    st.session_state.dataset.change_collection_scale(index=1, scale=0.66)
-
-    st.session_state.dataset.add_ellipse_collection(
-        number_of_points=50, a=0.4, b=1, label=-1)
-    st.session_state.dataset.change_collection_rotation(
-        index=2, rotation_angle=-0.2*pi)
-    st.session_state.dataset.change_collection_location(
-        index=2, position_x=-0.22, position_y=1.59)
-    st.session_state.dataset.change_collection_scale(index=2, scale=1.0)
-
-    st.session_state.dataset.add_ellipse_collection(
-        number_of_points=40, a=0.4, b=1, label=-1)
-    st.session_state.dataset.change_collection_rotation(
-        index=3, rotation_angle=0.3*pi)
-    st.session_state.dataset.change_collection_location(
-        index=3, position_x=-0.25, position_y=0.16)
-    st.session_state.dataset.change_collection_scale(index=3, scale=0.66)
-
-
-pregen_datapoints()
-
 col_left, col_middle, col_right = st.columns(3)
 
 with col_left:
@@ -338,9 +300,71 @@ if st.session_state.stage == 1:
                           on_click=remove_collection, args=[3])
 
         if st.session_state.add_edit == 2:
-            add_options = ["Circle", "Square", "Ellipse", "Rectangle"]
+            add_options = ["Presets", "Circle", "Square", "Ellipse", "Rectangle"]
             add_type = st.selectbox("Collection type", options=add_options)
-            if add_type == "Circle":
+            if add_type == "Presets":
+                st.write("Linear datasets")
+                st.write("Solvable by the single-layer perceptron")
+                col_inner_left, col_inner_right = st.columns(2)
+                with col_inner_left:
+                    if st.button("Sunflower", use_container_width=True):
+                        # Petal 1
+                        st.session_state.dataset.add_ellipse_collection(number_of_points=40, a=0.3, label=1, rotation_angle=0.0*pi, position_x=0.0, position_y=0.0)
+                        # Petal 2
+                        st.session_state.dataset.add_ellipse_collection(number_of_points=40, a=0.3, label=1, rotation_angle=-0.2*pi, position_x=-0.86, position_y=0.32)
+                        # Petal 3
+                        st.session_state.dataset.add_ellipse_collection(number_of_points=40, a=0.3, label=1, rotation_angle=-0.4*pi, position_x=-1.33, position_y=1.02)
+                        # Petal 4
+                        st.session_state.dataset.add_ellipse_collection(number_of_points=40, a=0.3, label=-1, rotation_angle=-0.6*pi, position_x=-1.33, position_y=1.87)
+                        # Petal 5
+                        st.session_state.dataset.add_ellipse_collection(number_of_points=40, a=0.3, label=-1, rotation_angle=-0.8*pi, position_x=-0.86, position_y=2.67)
+                        # Petal 6
+                        st.session_state.dataset.add_ellipse_collection(number_of_points=40, a=0.3, label=-1, rotation_angle=0.0*pi, position_x=0.0, position_y=2.95)
+                        # Petal 7
+                        st.session_state.dataset.add_ellipse_collection(number_of_points=40, a=0.3, label=1, rotation_angle=0.2*pi, position_x=0.86, position_y=0.32)
+                        # Petal 8
+                        st.session_state.dataset.add_ellipse_collection(number_of_points=40, a=0.3, label=1, rotation_angle=0.4*pi, position_x=1.33, position_y=1.02)
+                        # Petal 9
+                        st.session_state.dataset.add_ellipse_collection(number_of_points=40, a=0.3, label=-1, rotation_angle=0.6*pi, position_x=1.33, position_y=1.87)
+                        # Petal 10
+                        st.session_state.dataset.add_ellipse_collection(number_of_points=40, a=0.3, label=-1, rotation_angle=0.8*pi, position_x=0.86, position_y=2.67)
+                    if st.button("Butterfly", use_container_width=True):
+                        st.session_state.dataset.add_ellipse_collection(number_of_points=50, a=0.4, label=1, rotation_angle=0.3*pi, position_x=-1.84, position_y=1.3, scale=1)
+                        st.session_state.dataset.add_ellipse_collection(number_of_points=40, a=0.4, label=1, rotation_angle=-0.2*pi, position_x=-1.4, position_y=0.0, scale=0.66)
+                        st.session_state.dataset.add_ellipse_collection(number_of_points=50, a=0.4, label=-1, rotation_angle=-0.2*pi, position_x=-0.22, position_y=1.59, scale=1)
+                        st.session_state.dataset.add_ellipse_collection(number_of_points=40, a=0.4, label=-1, rotation_angle=0.3*pi, position_x=-0.25, position_y=0.16, scale=0.66)
+                with col_inner_right:
+                    if st.button("Flag: Lichtenstein", use_container_width=True):
+                        st.session_state.dataset.add_rectangle_collection(number_of_points=70, short_side=0.3, label=-1, position_x=0.0, position_y=0.0, rotation_angle=0.5*pi)
+                        st.session_state.dataset.add_rectangle_collection(number_of_points=70, short_side=0.3, label=1, position_x=0.0, position_y=-0.67, rotation_angle=0.5*pi)
+                st.write("Non-linear datasets that require a neural network to solve")
+                col_inner_left, col_inner_right = st.columns(2)
+                with col_inner_left:
+                    if st.button("Checkerboard", use_container_width=True):
+                        # left side
+                        st.session_state.dataset.add_rectangle_collection(number_of_points=40, label=-1, position_x=-2.13, position_y=2.13)
+                        st.session_state.dataset.add_rectangle_collection(number_of_points=40, label=1, position_x=-2.13, position_y=0.0)
+                        st.session_state.dataset.add_rectangle_collection(number_of_points=40, label=-1, position_x=-2.13, position_y=-2.13)
+                        # middle
+                        st.session_state.dataset.add_rectangle_collection(number_of_points=40, label=1, position_x=0.0, position_y=2.13)
+                        st.session_state.dataset.add_rectangle_collection(number_of_points=40, label=-1, position_x=0.0, position_y=0.0)
+                        st.session_state.dataset.add_rectangle_collection(number_of_points=40, short_side=1, label=1, position_x=0.0, position_y=-2.13)
+                        # right side
+                        st.session_state.dataset.add_rectangle_collection(number_of_points=40, label=-1, position_x=2.13, position_y=2.13)
+                        st.session_state.dataset.add_rectangle_collection(number_of_points=40, label=1, position_x=2.13, position_y=0.0)
+                        st.session_state.dataset.add_rectangle_collection(number_of_points=40, short_side=1, label=-1, position_x=2.13, position_y=-2.13)
+                with col_inner_right:
+                    if st.button("Flag: Norway", use_container_width=True):
+                        # lines
+                        st.session_state.dataset.add_rectangle_collection(number_of_points=70, short_side=0.1, label=1, position_x=0.0, position_y=0.0, scale=1, rotation_angle=0.5*pi)
+                        st.session_state.dataset.add_rectangle_collection(number_of_points=50, short_side=0.2, label=1, position_x=-0.22, position_y=0.0, scale=0.57, rotation_angle=0.0*pi)
+                        # left rectangles
+                        st.session_state.dataset.add_rectangle_collection(number_of_points=70, short_side=0.7, label=-1, position_x=-0.7, position_y=0.38, scale=0.28, rotation_angle=0.5*pi)
+                        st.session_state.dataset.add_rectangle_collection(number_of_points=70, short_side=0.7, label=-1, position_x=-0.7, position_y=-0.38, scale=0.28, rotation_angle=0.5*pi)
+                        # right rectangles
+                        st.session_state.dataset.add_rectangle_collection(number_of_points=70, short_side=0.4, label=-1, position_x=0.48, position_y=0.35, scale=0.52, rotation_angle=0.5*pi)
+                        st.session_state.dataset.add_rectangle_collection(number_of_points=70, short_side=0.4, label=-1, position_x=0.48, position_y=-0.35, scale=0.52, rotation_angle=0.5*pi)
+            elif add_type == "Circle":
                 number_of_points = st.number_input(
                     "Number of points", min_value=10, max_value=100, step=10)
                 if st.button("Add collection!", use_container_width=True):

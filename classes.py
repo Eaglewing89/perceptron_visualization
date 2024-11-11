@@ -48,15 +48,21 @@ class Perceptron:
         """
         length, dimension = x_train.shape
         self.weights = np.random.rand(dimension + 1)
-        # self.weights = np.array([0,1.1,-1])
+        n_samples = x_train.shape[0]
         w_history = []
+        w_history.append(self.weights.copy())
         for _ in range(epochs):
+            # Shuffle data at the start of each epoch
+            shuffle_idx = np.random.permutation(n_samples)
+            x_shuffled = x_train[shuffle_idx]
+            y_shuffled = y_train[shuffle_idx]
+
             for index in range(length):
                 weighted_sum = (
-                    x_train[index]@self.weights[1:]) + self.weights[0]
+                    x_shuffled[index]@self.weights[1:]) + self.weights[0]
                 prediction = self.sign_function(weighted_sum)
-                loss = (prediction-y_train[index])/2
-                self.weights[1:] -= learning_rate * loss * x_train[index]
+                loss = (prediction-y_shuffled[index])/2
+                self.weights[1:] -= learning_rate * loss * x_shuffled[index]
                 self.weights[0] -= learning_rate * loss
 
             w_history.append(self.weights.copy())
@@ -65,6 +71,9 @@ class Perceptron:
 
 
 class PointCollection:
+    """
+    Class for storing, generating and manipulating collections of points.
+    """
     def __init__(self) -> None:
         self.collections_points = []
         self.collections_locations = []
@@ -198,14 +207,29 @@ class PointCollection:
         self.collections_labels.append(label)
         self.collections_scales.append(float(scale))
 
-    def add_rectangle_collection(self, number_of_points: int, short_side: float = 1) -> None:
+    def add_rectangle_collection(self, number_of_points: int, short_side: float = 1, label: int = 1, rotation_angle: float = 0, position_x: float = 0, position_y: float = 0, scale: float = 1) -> None:
+        """
+        Adds a point collection in the shape of a rectangle.
+
+        Args:
+            number_of_points (int): Total amount of points in the shape.
+            short_side (float, optional): Scale of short sides length. Defaults to 1.
+            label (int, optional): Collection class label. Defaults to 1.
+            rotation_angle (float, optional): Rotation of the set of points. Defaults to 0.
+            position_x (float, optional): Position along x axis. Defaults to 0.
+            position_y (float, optional): Position along y axis. Defaults to 0.
+            scale (float, optional): Scale of the shape. Defaults to 1.
+
+        Raises:
+            ValueError: Returned if user does not conform to type hints. 
+        """
         try:
             self.collections_points.append(
                 self._create_rectangle_points(number_of_points, short_side))
-            self.collections_locations.append([float(0), float(0)])
-            self.collections_rotations.append(float(0))
-            self.collections_labels.append(int(1))
-            self.collections_scales.append(float(1))
+            self.collections_locations.append([float(position_x), float(position_y)])
+            self.collections_rotations.append(float(rotation_angle))
+            self.collections_labels.append(int(label))
+            self.collections_scales.append(float(scale))
         except ValueError as exc:
             raise ValueError from exc
 
