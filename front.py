@@ -130,6 +130,7 @@ def set_state(i: int) -> None:
 def set_add_edit(i: int) -> None:
     st.session_state.add_edit = i
 
+
 col_left, col_middle, col_right = st.columns(3)
 
 with col_left:
@@ -300,7 +301,8 @@ if st.session_state.stage == 1:
                           on_click=remove_collection, args=[3])
 
         if st.session_state.add_edit == 2:
-            add_options = ["Presets", "Circle", "Square", "Ellipse", "Rectangle"]
+            add_options = ["Presets", "Circle",
+                           "Square", "Ellipse", "Rectangle"]
             add_type = st.selectbox("Collection type", options=add_options)
             if add_type == "Presets":
                 with stylable_container(key="preset_linear",
@@ -317,35 +319,51 @@ if st.session_state.stage == 1:
                     with col_inner_left:
                         if st.button("Sunflower", use_container_width=True):
                             # Petal 1
-                            st.session_state.dataset.add_ellipse_collection(number_of_points=40, a=0.3, label=1, rotation_angle=0.0*pi, position_x=0.0, position_y=0.0)
+                            st.session_state.dataset.add_ellipse_collection(
+                                number_of_points=40, a=0.3, label=1, rotation_angle=0.0*pi, position_x=0.0, position_y=0.0)
                             # Petal 2
-                            st.session_state.dataset.add_ellipse_collection(number_of_points=40, a=0.3, label=1, rotation_angle=-0.2*pi, position_x=-0.86, position_y=0.32)
+                            st.session_state.dataset.add_ellipse_collection(
+                                number_of_points=40, a=0.3, label=1, rotation_angle=-0.2*pi, position_x=-0.86, position_y=0.32)
                             # Petal 3
-                            st.session_state.dataset.add_ellipse_collection(number_of_points=40, a=0.3, label=1, rotation_angle=-0.4*pi, position_x=-1.33, position_y=1.02)
+                            st.session_state.dataset.add_ellipse_collection(
+                                number_of_points=40, a=0.3, label=1, rotation_angle=-0.4*pi, position_x=-1.33, position_y=1.02)
                             # Petal 4
-                            st.session_state.dataset.add_ellipse_collection(number_of_points=40, a=0.3, label=-1, rotation_angle=-0.6*pi, position_x=-1.33, position_y=1.87)
+                            st.session_state.dataset.add_ellipse_collection(
+                                number_of_points=40, a=0.3, label=-1, rotation_angle=-0.6*pi, position_x=-1.33, position_y=1.87)
                             # Petal 5
-                            st.session_state.dataset.add_ellipse_collection(number_of_points=40, a=0.3, label=-1, rotation_angle=-0.8*pi, position_x=-0.86, position_y=2.67)
+                            st.session_state.dataset.add_ellipse_collection(
+                                number_of_points=40, a=0.3, label=-1, rotation_angle=-0.8*pi, position_x=-0.86, position_y=2.67)
                             # Petal 6
-                            st.session_state.dataset.add_ellipse_collection(number_of_points=40, a=0.3, label=-1, rotation_angle=0.0*pi, position_x=0.0, position_y=2.95)
+                            st.session_state.dataset.add_ellipse_collection(
+                                number_of_points=40, a=0.3, label=-1, rotation_angle=0.0*pi, position_x=0.0, position_y=2.95)
                             # Petal 7
-                            st.session_state.dataset.add_ellipse_collection(number_of_points=40, a=0.3, label=1, rotation_angle=0.2*pi, position_x=0.86, position_y=0.32)
+                            st.session_state.dataset.add_ellipse_collection(
+                                number_of_points=40, a=0.3, label=1, rotation_angle=0.2*pi, position_x=0.86, position_y=0.32)
                             # Petal 8
-                            st.session_state.dataset.add_ellipse_collection(number_of_points=40, a=0.3, label=1, rotation_angle=0.4*pi, position_x=1.33, position_y=1.02)
+                            st.session_state.dataset.add_ellipse_collection(
+                                number_of_points=40, a=0.3, label=1, rotation_angle=0.4*pi, position_x=1.33, position_y=1.02)
                             # Petal 9
-                            st.session_state.dataset.add_ellipse_collection(number_of_points=40, a=0.3, label=-1, rotation_angle=0.6*pi, position_x=1.33, position_y=1.87)
+                            st.session_state.dataset.add_ellipse_collection(
+                                number_of_points=40, a=0.3, label=-1, rotation_angle=0.6*pi, position_x=1.33, position_y=1.87)
                             # Petal 10
-                            st.session_state.dataset.add_ellipse_collection(number_of_points=40, a=0.3, label=-1, rotation_angle=0.8*pi, position_x=0.86, position_y=2.67)
+                            st.session_state.dataset.add_ellipse_collection(
+                                number_of_points=40, a=0.3, label=-1, rotation_angle=0.8*pi, position_x=0.86, position_y=2.67)
                         if st.button("Butterfly", use_container_width=True):
-                            st.session_state.dataset.add_ellipse_collection(number_of_points=50, a=0.4, label=1, rotation_angle=0.3*pi, position_x=-1.84, position_y=1.3, scale=1)
-                            st.session_state.dataset.add_ellipse_collection(number_of_points=40, a=0.4, label=1, rotation_angle=-0.2*pi, position_x=-1.4, position_y=0.0, scale=0.66)
-                            st.session_state.dataset.add_ellipse_collection(number_of_points=50, a=0.4, label=-1, rotation_angle=-0.2*pi, position_x=-0.22, position_y=1.59, scale=1)
-                            st.session_state.dataset.add_ellipse_collection(number_of_points=40, a=0.4, label=-1, rotation_angle=0.3*pi, position_x=-0.25, position_y=0.16, scale=0.66)
+                            st.session_state.dataset.add_ellipse_collection(
+                                number_of_points=50, a=0.4, label=1, rotation_angle=0.3*pi, position_x=-1.84, position_y=1.3, scale=1)
+                            st.session_state.dataset.add_ellipse_collection(
+                                number_of_points=40, a=0.4, label=1, rotation_angle=-0.2*pi, position_x=-1.4, position_y=0.0, scale=0.66)
+                            st.session_state.dataset.add_ellipse_collection(
+                                number_of_points=50, a=0.4, label=-1, rotation_angle=-0.2*pi, position_x=-0.22, position_y=1.59, scale=1)
+                            st.session_state.dataset.add_ellipse_collection(
+                                number_of_points=40, a=0.4, label=-1, rotation_angle=0.3*pi, position_x=-0.25, position_y=0.16, scale=0.66)
                     with col_inner_right:
                         if st.button("Flag: Lichtenstein", use_container_width=True):
-                            st.session_state.dataset.add_rectangle_collection(number_of_points=70, short_side=0.3, label=-1, position_x=0.0, position_y=0.0, rotation_angle=0.5*pi)
-                            st.session_state.dataset.add_rectangle_collection(number_of_points=70, short_side=0.3, label=1, position_x=0.0, position_y=-0.67, rotation_angle=0.5*pi)
-                
+                            st.session_state.dataset.add_rectangle_collection(
+                                number_of_points=70, short_side=0.3, label=-1, position_x=0.0, position_y=0.0, rotation_angle=0.5*pi)
+                            st.session_state.dataset.add_rectangle_collection(
+                                number_of_points=70, short_side=0.3, label=1, position_x=0.0, position_y=-0.67, rotation_angle=0.5*pi)
+
                 with stylable_container(key="preset_non_linear",
                                         css_styles=["""
                                         {
@@ -360,28 +378,43 @@ if st.session_state.stage == 1:
                     with col_inner_left:
                         if st.button("Chessboard", use_container_width=True):
                             # left side
-                            st.session_state.dataset.add_rectangle_collection(number_of_points=40, label=-1, position_x=-2.13, position_y=2.13)
-                            st.session_state.dataset.add_rectangle_collection(number_of_points=40, label=1, position_x=-2.13, position_y=0.0)
-                            st.session_state.dataset.add_rectangle_collection(number_of_points=40, label=-1, position_x=-2.13, position_y=-2.13)
+                            st.session_state.dataset.add_rectangle_collection(
+                                number_of_points=40, label=-1, position_x=-2.13, position_y=2.13)
+                            st.session_state.dataset.add_rectangle_collection(
+                                number_of_points=40, label=1, position_x=-2.13, position_y=0.0)
+                            st.session_state.dataset.add_rectangle_collection(
+                                number_of_points=40, label=-1, position_x=-2.13, position_y=-2.13)
                             # middle
-                            st.session_state.dataset.add_rectangle_collection(number_of_points=40, label=1, position_x=0.0, position_y=2.13)
-                            st.session_state.dataset.add_rectangle_collection(number_of_points=40, label=-1, position_x=0.0, position_y=0.0)
-                            st.session_state.dataset.add_rectangle_collection(number_of_points=40, short_side=1, label=1, position_x=0.0, position_y=-2.13)
+                            st.session_state.dataset.add_rectangle_collection(
+                                number_of_points=40, label=1, position_x=0.0, position_y=2.13)
+                            st.session_state.dataset.add_rectangle_collection(
+                                number_of_points=40, label=-1, position_x=0.0, position_y=0.0)
+                            st.session_state.dataset.add_rectangle_collection(
+                                number_of_points=40, short_side=1, label=1, position_x=0.0, position_y=-2.13)
                             # right side
-                            st.session_state.dataset.add_rectangle_collection(number_of_points=40, label=-1, position_x=2.13, position_y=2.13)
-                            st.session_state.dataset.add_rectangle_collection(number_of_points=40, label=1, position_x=2.13, position_y=0.0)
-                            st.session_state.dataset.add_rectangle_collection(number_of_points=40, short_side=1, label=-1, position_x=2.13, position_y=-2.13)
+                            st.session_state.dataset.add_rectangle_collection(
+                                number_of_points=40, label=-1, position_x=2.13, position_y=2.13)
+                            st.session_state.dataset.add_rectangle_collection(
+                                number_of_points=40, label=1, position_x=2.13, position_y=0.0)
+                            st.session_state.dataset.add_rectangle_collection(
+                                number_of_points=40, short_side=1, label=-1, position_x=2.13, position_y=-2.13)
                     with col_inner_right:
                         if st.button("Flag: Norway", use_container_width=True):
                             # lines
-                            st.session_state.dataset.add_rectangle_collection(number_of_points=70, short_side=0.1, label=1, position_x=0.0, position_y=0.0, scale=1, rotation_angle=0.5*pi)
-                            st.session_state.dataset.add_rectangle_collection(number_of_points=50, short_side=0.2, label=1, position_x=-0.22, position_y=0.0, scale=0.57, rotation_angle=0.0*pi)
+                            st.session_state.dataset.add_rectangle_collection(
+                                number_of_points=70, short_side=0.1, label=1, position_x=0.0, position_y=0.0, scale=1, rotation_angle=0.5*pi)
+                            st.session_state.dataset.add_rectangle_collection(
+                                number_of_points=50, short_side=0.2, label=1, position_x=-0.22, position_y=0.0, scale=0.57, rotation_angle=0.0*pi)
                             # left rectangles
-                            st.session_state.dataset.add_rectangle_collection(number_of_points=70, short_side=0.7, label=-1, position_x=-0.7, position_y=0.38, scale=0.28, rotation_angle=0.5*pi)
-                            st.session_state.dataset.add_rectangle_collection(number_of_points=70, short_side=0.7, label=-1, position_x=-0.7, position_y=-0.38, scale=0.28, rotation_angle=0.5*pi)
+                            st.session_state.dataset.add_rectangle_collection(
+                                number_of_points=70, short_side=0.7, label=-1, position_x=-0.7, position_y=0.38, scale=0.28, rotation_angle=0.5*pi)
+                            st.session_state.dataset.add_rectangle_collection(
+                                number_of_points=70, short_side=0.7, label=-1, position_x=-0.7, position_y=-0.38, scale=0.28, rotation_angle=0.5*pi)
                             # right rectangles
-                            st.session_state.dataset.add_rectangle_collection(number_of_points=70, short_side=0.4, label=-1, position_x=0.48, position_y=0.35, scale=0.52, rotation_angle=0.5*pi)
-                            st.session_state.dataset.add_rectangle_collection(number_of_points=70, short_side=0.4, label=-1, position_x=0.48, position_y=-0.35, scale=0.52, rotation_angle=0.5*pi)
+                            st.session_state.dataset.add_rectangle_collection(
+                                number_of_points=70, short_side=0.4, label=-1, position_x=0.48, position_y=0.35, scale=0.52, rotation_angle=0.5*pi)
+                            st.session_state.dataset.add_rectangle_collection(
+                                number_of_points=70, short_side=0.4, label=-1, position_x=0.48, position_y=-0.35, scale=0.52, rotation_angle=0.5*pi)
             elif add_type == "Circle":
                 number_of_points = st.number_input(
                     "Number of points", min_value=10, max_value=100, step=10)
@@ -507,13 +540,13 @@ if st.session_state.stage == 2:
         col_left, col_right = st.columns(2)
         with col_left:
             p_learning_rate = st.number_input("Learning rate", min_value=0.001, max_value=1.0, value=0.01,
-                                               step=0.001, format="%.3f", help="How fast the model updates during training")
+                                              step=0.001, format="%.3f", help="How fast the model updates during training", key="perceptron_learning")
         with col_right:
             p_epochs = st.number_input("Iterations", min_value=1, max_value=200, value=50,
-                                        help="How many times the model sees all training data", step=10)
-            
+                                       help="How many times the model sees all training data", step=10, key="nn_iterations")
+
         if st.button("Train model!", use_container_width=True):
-            
+
             df = st.session_state.dataset.build_dataframe()
 
             x_train = np.array(df.drop(columns="label"))
@@ -539,8 +572,10 @@ if st.session_state.stage == 2:
                                     x_train=x_train, df=df)
 
                 # Calculate the axis ranges
-                x_min, x_max = x_train[:, 0].min() - 0.5, x_train[:, 0].max() + 0.5
-                y_min, y_max = x_train[:, 1].min() - 0.5, x_train[:, 1].max() + 0.5
+                x_min, x_max = x_train[:, 0].min(
+                ) - 0.5, x_train[:, 0].max() + 0.5
+                y_min, y_max = x_train[:, 1].min(
+                ) - 0.5, x_train[:, 1].max() + 0.5
 
                 # Update the layout
                 fig.update_layout(
@@ -550,9 +585,9 @@ if st.session_state.stage == 2:
                     width=800,
                     height=600,
                     xaxis={"range": [x_min, x_max], "visible": False,
-                        "showticklabels": False, "hoverformat": ".2f"},
+                           "showticklabels": False, "hoverformat": ".2f"},
                     yaxis={"range": [y_min, y_max], "visible": False,
-                        "showticklabels": False, "hoverformat": ".2f"},
+                           "showticklabels": False, "hoverformat": ".2f"},
                 )
 
                 fig.update_yaxes(
@@ -562,7 +597,7 @@ if st.session_state.stage == 2:
 
                 # Create and add frames
                 frames = [go.Frame(data=create_figure(weights=w, x_train=x_train, df=df).data, name=str(i))
-                        for i, w in enumerate(w_history)]
+                          for i, w in enumerate(w_history)]
                 fig.frames = frames
 
                 # Add slider and play button
@@ -573,11 +608,11 @@ if st.session_state.stage == 2:
                             showactive=False,
                             buttons=[
                                 dict(label="Play",
-                                    method="animate",
-                                    args=[None, {"frame": {"duration": 100, "redraw": True}, "fromcurrent": True}]),
+                                     method="animate",
+                                     args=[None, {"frame": {"duration": 100, "redraw": True}, "fromcurrent": True}]),
                                 dict(label="Pause",
-                                    method="animate",
-                                    args=[[None], {"frame": {"duration": 0, "redraw": True}, "mode": "immediate", "transition": {"duration": 0}}])
+                                     method="animate",
+                                     args=[[None], {"frame": {"duration": 0, "redraw": True}, "mode": "immediate", "transition": {"duration": 0}}])
                             ]
                         )
                     ],
@@ -587,7 +622,7 @@ if st.session_state.stage == 2:
                                 dict(
                                     method="animate",
                                     args=[[str(i)], {"frame": {"duration": 100,
-                                                            "redraw": True}, "mode": "immediate"}],
+                                                               "redraw": True}, "mode": "immediate"}],
                                     label=str(i+1)
                                 )
                                 for i in range(p_epochs)
@@ -596,7 +631,7 @@ if st.session_state.stage == 2:
                             x=0,
                             y=0,
                             currentvalue={"font": {"size": 12}, "prefix": "Iteration: ",
-                                        "visible": True, "xanchor": "center"},
+                                          "visible": True, "xanchor": "center"},
                             len=0.9,
                         )
                     ]
@@ -672,10 +707,10 @@ if st.session_state.stage == 3:
         col_left, col_middle, col_right = st.columns(3)
         with col_left:
             nn_learning_rate = st.number_input("Learning rate", min_value=0.001, max_value=1.0, value=0.01,
-                                               step=0.001, format="%.3f", help="How fast the model updates during training")
+                                               step=0.001, format="%.3f", help="How fast the model updates during training", key="nn_learning")
         with col_middle:
             nn_epochs = st.number_input("Iterations", min_value=100, max_value=20000, value=1000,
-                                        help="How many times the model sees all training data", step=100)
+                                        help="How many times the model sees all training data", step=100, key="nn_iterations")
         with col_right:
             neuron_layers = st.number_input(
                 "Hidden layers", min_value=1, max_value=10, value=1, help="Number of layers of neurons in the model")
